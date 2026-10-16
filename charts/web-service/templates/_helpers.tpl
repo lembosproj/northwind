@@ -53,3 +53,46 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- if .isPublic -}}{{ .port }}{{- break -}}{{- end -}}
 {{- end -}}
 {{- end -}}
+
+{{- define "webservice.publicPortName" -}}
+{{- range .Values.ports -}}
+{{- if .isPublic -}}{{ .name }}{{- break -}}{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "webservice.listensOn80" -}}
+{{- range .Values.ports -}}
+{{- if eq (int .port) 80 -}}true{{- break -}}{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- /*
+  What the workload depends on, as environment variables — where each thing is and where its credential lives,
+  never the credential. A resource binding names its endpoint and its secret's path; the URL is read from a
+  Kubernetes secret only where a provisioner placed one, and is optional so a pod still starts where none did.
+  An upstream is a component this one calls: a bare host is called over HTTP, on the port its Service answers
+  every caller on.
+*/}}
+{{- define "webservice.dependencyEnv" -}}
+{{- range $handle, $binding := .Values.resourceBindings }}
+{{- $name := $handle | snakecase | upper }}
+{{- with $binding.endpoint }}
+- name: {{ $name }}_ENDPOINT
+  value: {{ . | quote }}
+{{- end }}
+{{- with $binding.secretRef }}
+- name: {{ $name }}_SECRET_REF
+  value: {{ . | quote }}
+- name: {{ $name }}_URL
+  valueFrom:
+    secretKeyRef:
+      name: {{ . | replace "/" "-" | lower | trunc 253 }}
+      key: url
+      optional: true
+{{- end }}
+{{- end }}
+{{- range $name, $address := .Values.upstreams }}
+- name: UPSTREAM_{{ $name | snakecase | upper }}
+  value: {{ ternary $address (printf "http://%s" $address) (contains "://" $address) | quote }}
+{{- end }}
+{{- end -}}

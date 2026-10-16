@@ -1,6 +1,6 @@
-# Rendered by the Lembos deployment workflow from a ComponentSpecVersion, the resolved
-# EnvironmentProfile bindings, and the merged ConfigSet. Every default here is a value the
-# platform is expected to override; the defaults exist so `helm template` works standalone.
+# Rendered by Lembos from the blueprint's own answers and the component's spec version, as a run resolves them.
+# Every default here is a value the platform is expected to override; the defaults exist so `helm template` works
+# standalone.
 
 lembos:
   component: ""       # qualified name, e.g. ordering/order-api
@@ -27,13 +27,20 @@ ports:
     protocol: http
     isPublic: true
 
-# One entry per ResourceNeed, keyed by the need's handle. Carries where the credential lives,
-# never the credential.
+# One entry per resource the component depends on, keyed by a handle: where it is, and where its credential lives —
+# never the credential. Rendered as <HANDLE>_ENDPOINT and <HANDLE>_SECRET_REF, plus <HANDLE>_URL from a Kubernetes
+# secret named after the path, where a provisioner placed one.
 resourceBindings: {}
 #  ordersDb:
-#    secretRef: northwind/prod/ordering/orders-db
+#    endpoint: northwind-sandbox-default-ordering-orders-db.local:5432
+#    secretRef: northwind/sandbox/default/ordering/orders-db
 
-# The merged ConfigSet, projected as environment variables.
+# One entry per component this one calls, keyed by a name: its host, or a whole URL. Rendered as UPSTREAM_<NAME>; a
+# host is called over HTTP on port 80, which every web-service answers callers on.
+upstreams: {}
+#  orderApi: ordering-order-api-default.northwind-sandbox-default.svc.cluster.local
+
+# The spec's settings, projected as environment variables.
 config: {}
 
 sizeClass: small

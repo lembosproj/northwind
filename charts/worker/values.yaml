@@ -22,7 +22,20 @@ replicas: 1
 # ignored here. Ports are still honoured for metrics scraping.
 ports: []
 
+# One entry per resource the component depends on, keyed by a handle: where it is, and where its credential lives —
+# never the credential. Rendered as <HANDLE>_ENDPOINT and <HANDLE>_SECRET_REF, plus <HANDLE>_URL from a Kubernetes
+# secret named after the path, where a provisioner placed one.
 resourceBindings: {}
+#  ordersDb:
+#    endpoint: northwind-sandbox-default-ordering-orders-db.local:5432
+#    secretRef: northwind/sandbox/default/ordering/orders-db
+
+# One entry per component this one calls, keyed by a name: its host, or a whole URL. Rendered as UPSTREAM_<NAME>; a
+# host is called over HTTP on port 80, which every web-service answers callers on.
+upstreams: {}
+#  orderApi: ordering-order-api-default.northwind-sandbox-default.svc.cluster.local
+
+# The spec's settings, projected as environment variables.
 config: {}
 sizeClass: small
 

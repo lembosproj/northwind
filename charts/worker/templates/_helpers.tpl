@@ -40,12 +40,32 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
 {{/* Shared by every chart: a binding names where the credential is, never what it is. */}}
-{{- define "worker.bindingEnv" -}}
+{{- /*
+  What the workload depends on, as environment variables — where each thing is and where its credential lives,
+  never the credential. The same contract as web-service, so a component moving between the two keeps its
+  wiring: a binding's endpoint and secret path, its URL from a Kubernetes secret only where one was placed, and each
+  upstream it calls.
+*/}}
+{{- define "worker.dependencyEnv" -}}
 {{- range $handle, $binding := .Values.resourceBindings }}
-- name: {{ $handle | upper | replace "-" "_" }}_URL
+{{- $name := $handle | snakecase | upper }}
+{{- with $binding.endpoint }}
+- name: {{ $name }}_ENDPOINT
+  value: {{ . | quote }}
+{{- end }}
+{{- with $binding.secretRef }}
+- name: {{ $name }}_SECRET_REF
+  value: {{ . | quote }}
+- name: {{ $name }}_URL
   valueFrom:
     secretKeyRef:
-      name: {{ $binding.secretRef | replace "/" "-" }}
+      name: {{ . | replace "/" "-" | lower | trunc 253 }}
       key: url
+      optional: true
+{{- end }}
+{{- end }}
+{{- range $name, $address := .Values.upstreams }}
+- name: UPSTREAM_{{ $name | snakecase | upper }}
+  value: {{ ternary $address (printf "http://%s" $address) (contains "://" $address) | quote }}
 {{- end }}
 {{- end -}}

@@ -14,4 +14,15 @@ spec:
       targetPort: {{ .name }}
       protocol: TCP
     {{- end }}
+    {{- /*
+      Every caller's port: the service answers on 80 too, at its first public port, so a workload calling it needs
+      only its host — the clusterEndpoint it publishes — and not which port it happens to listen on.
+    */}}
+    {{- $public := include "webservice.publicPortName" . }}
+    {{- if and $public (not (include "webservice.listensOn80" .)) }}
+    - name: callers
+      port: 80
+      targetPort: {{ $public }}
+      protocol: TCP
+    {{- end }}
 {{- end }}
