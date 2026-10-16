@@ -1,0 +1,11 @@
+apiVersion: v2
+name: web-service
+description: The golden path for an HTTP service - deployment, service, ingress, autoscaler, dashboards.
+type: application
+version: 2.4.0
+appVersion: "2.4.0"
+kubeVersion: ">=1.28.0-0"
+keywords: [lembos, blueprint, component, http]
+annotations:
+  lembos.dev/blueprint: platform/helm-web-service
+  lembos.dev/blueprint-type: Component

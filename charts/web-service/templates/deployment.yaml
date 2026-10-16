@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "webservice.fullname" . }}
+  labels: {{- include "webservice.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicas }}
+  {{- end }}
+  selector:
+    matchLabels: {{- include "webservice.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "webservice.labels" . | nindent 8 }}
+      {{- with .Values.podAnnotations }}
+      annotations: {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- if .Values.serviceAccount.create }}
+      serviceAccountName: {{ include "webservice.fullname" . }}
+      {{- end }}
+      containers:
+        - name: app
+          image: {{ include "webservice.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            {{- range .Values.ports }}
+            - name: {{ .name }}
+              containerPort: {{ .port }}
+              protocol: TCP
+            {{- end }}
+          env:
+            - name: LEMBOS_COMPONENT
+              value: {{ .Values.lembos.component | quote }}
+            - name: LEMBOS_ENVIRONMENT
+              value: {{ .Values.lembos.environment | quote }}
+            - name: LEMBOS_STAMP
+              value: {{ .Values.lembos.stamp | quote }}
+            {{- range $key, $value := .Values.config }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- /*
+              A resource binding becomes a secretKeyRef, never a literal. The secret itself is
+              placed by the provisioning run that created the resource; this only names it.
+            */}}
+            {{- range $handle, $binding := .Values.resourceBindings }}
+            - name: {{ $handle | upper | replace "-" "_" }}_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $binding.secretRef | replace "/" "-" }}
+                  key: url
+            {{- end }}
+          resources: {{- include "webservice.resources" . | nindent 12 }}
+          {{- $public := include "webservice.publicPort" . }}
+          {{- if $public }}
+          livenessProbe:
+            httpGet: { path: /healthz, port: {{ $public }} }
+            initialDelaySeconds: 10
+          readinessProbe:
+            httpGet: { path: /readyz, port: {{ $public }} }
+            initialDelaySeconds: 3
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity: {{- toYaml . | nindent 8 }}
+      {{- end }}

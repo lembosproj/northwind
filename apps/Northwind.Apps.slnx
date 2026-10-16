@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/Src/">
+    <Project Path="src/Northwind.Runtime/Northwind.Runtime.csproj" />
+    <Project Path="src/Northwind.WebService/Northwind.WebService.csproj" />
+    <Project Path="src/Northwind.Worker/Northwind.Worker.csproj" />
+  </Folder>
+</Solution>

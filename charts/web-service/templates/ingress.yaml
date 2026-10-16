@@ -1,0 +1,24 @@
+{{- $public := include "webservice.publicPort" . -}}
+{{- if and .Values.ingress.enabled $public }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "webservice.fullname" . }}
+  labels: {{- include "webservice.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations: {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.host | default (printf "%s.%s.local" (include "webservice.name" .) (.Values.lembos.environment | replace "/" "-")) }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "webservice.fullname" . }}
+                port:
+                  number: {{ $public }}
+{{- end }}

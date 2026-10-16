@@ -1,0 +1,73 @@
+# Rendered by the Lembos deployment workflow from a ComponentSpecVersion, the resolved
+# EnvironmentProfile bindings, and the merged ConfigSet. Every default here is a value the
+# platform is expected to override; the defaults exist so `helm template` works standalone.
+
+lembos:
+  component: ""       # qualified name, e.g. ordering/order-api
+  environment: ""     # e.g. northwind/prod
+  stamp: ""           # e.g. eu-west
+  specVersion: ""
+
+image:
+  # No archetype is published under its own name: each component's repository holds its archetype's build, and
+  # the platform sets which. This default is one that exists, so a standalone render pulls.
+  repository: ghcr.io/lembosproj/northwind/apps/order-api
+  tag: latest
+  # A pinned artifact digest. When set it wins over tag, because a deployment pins a digest
+  # and a tag can move under it.
+  digest: ""
+  pullPolicy: IfNotPresent
+
+replicas: 1
+
+# ComponentSpecVersion.Ports. The first public port is what the Service and Ingress expose.
+ports:
+  - name: http
+    port: 8080
+    protocol: http
+    isPublic: true
+
+# One entry per ResourceNeed, keyed by the need's handle. Carries where the credential lives,
+# never the credential.
+resourceBindings: {}
+#  ordersDb:
+#    secretRef: northwind/prod/ordering/orders-db
+
+# The merged ConfigSet, projected as environment variables.
+config: {}
+
+sizeClass: small
+
+# What a size class means here. The platform team owns this table, which is the point of
+# declaring a class rather than a limit.
+sizes:
+  small:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits:   { cpu: 500m, memory: 512Mi }
+  medium:
+    requests: { cpu: 500m, memory: 512Mi }
+    limits:   { cpu: "2",  memory: 2Gi }
+  large:
+    requests: { cpu: "2",  memory: 2Gi }
+    limits:   { cpu: "4",  memory: 8Gi }
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+ingress:
+  enabled: true
+  className: traefik
+  host: ""            # defaults to {component}.{environment}.local
+  annotations: {}
+
+serviceAccount:
+  create: true
+  annotations: {}
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

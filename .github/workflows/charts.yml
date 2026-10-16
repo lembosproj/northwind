@@ -1,0 +1,50 @@
+name: charts
+
+# One chart version per tag, `charts/{chart}/v{version}` — the chart's name in the tag because one repository holds
+# several, so a bare `v2.6.0` could not say which of them it versioned.
+on:
+  push:
+    tags: ['charts/*/v*']
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  # The version the seeded blueprints declare as their tool, so what is pushed is what the worker renders with.
+  HELM_VERSION: v3.16.2
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - id: tag
+        run: |
+          chart="$(cut -d/ -f2 <<< "$GITHUB_REF_NAME")"
+          version="${GITHUB_REF_NAME##*/v}"
+          [ -f "charts/$chart/Chart.yaml" ] || { echo "::error::No chart at charts/$chart for tag $GITHUB_REF_NAME"; exit 1; }
+          echo "chart=$chart" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to the registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login "$REGISTRY" -u "${{ github.actor }}" --password-stdin
+
+      # The tag is the version, not Chart.yaml's: a blueprint version names the tag, and a version cut from an older
+      # commit — a deprecated line, a release candidate — has to be the number its tag says rather than whatever
+      # that commit's Chart.yaml was last bumped to.
+      - name: Package and push
+        env:
+          CHART: ${{ steps.tag.outputs.chart }}
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          helm package "charts/$CHART" --version "$VERSION" --app-version "$VERSION" --destination "$RUNNER_TEMP"
+          helm push "$RUNNER_TEMP/$CHART-$VERSION.tgz" "oci://$REGISTRY/$GITHUB_REPOSITORY/charts" 2>&1 | tee "$RUNNER_TEMP/push.log"
+          digest="$(grep -o 'sha256:[0-9a-f]\{64\}' "$RUNNER_TEMP/push.log" | tail -1)"
+          echo "charts/$CHART:$VERSION -> $digest" >> "$GITHUB_STEP_SUMMARY"

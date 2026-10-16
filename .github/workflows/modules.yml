@@ -1,0 +1,50 @@
+name: modules
+
+# One module version per tag, `modules/{module}/v{version}` — the module's name in the tag because one repository
+# holds several, so a bare `v3.3.1` could not say which of them it versioned.
+on:
+  push:
+    tags: ['modules/*/v*']
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oras-project/setup-oras@v1
+
+      - id: tag
+        run: |
+          module="$(cut -d/ -f2 <<< "$GITHUB_REF_NAME")"
+          version="${GITHUB_REF_NAME##*/v}"
+          [ -f "modules/$module/main.tf" ] || { echo "::error::No module at modules/$module for tag $GITHUB_REF_NAME"; exit 1; }
+          echo "module=$module" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to the registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login "$REGISTRY" -u "${{ github.actor }}" --password-stdin
+
+      # An OpenTofu module package: one zip layer holding the module at its root. Terraform has no OCI source of its
+      # own and does not need one — the worker fetches the package at the digest a version pins and hands Terraform a
+      # directory, so the run applies exactly what was published.
+      - name: Package and push
+        env:
+          MODULE: ${{ steps.tag.outputs.module }}
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          (cd "modules/$MODULE" && zip -qrX "$RUNNER_TEMP/$MODULE.zip" . -x '.terraform/*' '*.tfstate*' '*.tfvars')
+          ref="$REGISTRY/$GITHUB_REPOSITORY/modules/$MODULE:$VERSION"
+          cd "$RUNNER_TEMP"
+          oras push "$ref" \
+            --artifact-type application/vnd.opentofu.modulepkg \
+            --annotation "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+            "$MODULE.zip:archive/zip"
+          echo "modules/$MODULE:$VERSION -> $(oras resolve "$ref")" >> "$GITHUB_STEP_SUMMARY"

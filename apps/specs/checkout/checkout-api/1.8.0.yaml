@@ -1,0 +1,58 @@
+openapi: 3.1.0
+info:
+  title: Checkout API
+  version: 1.8.0
+  description: >-
+    The backend-for-frontend the checkout funnel calls. Not for other services - it is shaped for one
+    screen flow and will change whenever that flow does.
+servers:
+  - url: https://checkout.northwind.example/v1
+paths:
+  /baskets/{basketId}:
+    parameters:
+      - { name: basketId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getBasket
+      responses:
+        '200':
+          description: The basket as the funnel renders it, prices already resolved.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Basket' }
+        '404': { description: No such basket. }
+  /baskets/{basketId}/checkout:
+    parameters:
+      - { name: basketId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: startCheckout
+      summary: Convert a basket into an order and a payment intent
+      responses:
+        '200':
+          description: What the funnel needs to continue to payment.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [orderId, paymentIntentId]
+                properties:
+                  orderId: { type: string, format: uuid }
+                  paymentIntentId: { type: string }
+        '422': { description: The basket is empty or a line is no longer purchasable. }
+components:
+  schemas:
+    Basket:
+      type: object
+      required: [id, lines, total]
+      properties:
+        id: { type: string, format: uuid }
+        lines:
+          type: array
+          items:
+            type: object
+            required: [sku, name, quantity, lineTotal]
+            properties:
+              sku: { type: string }
+              name: { type: string }
+              quantity: { type: integer, minimum: 1 }
+              lineTotal: { type: string }
+        total: { type: string }

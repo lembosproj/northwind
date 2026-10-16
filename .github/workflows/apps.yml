@@ -1,0 +1,87 @@
+name: apps
+
+# Tags and manual runs only.
+#
+# Not on every push to main: the working loop for this fixture is `aspire run` against a local
+# registry, where an image is built and pulled without leaving the machine. Publishing here is for
+# the two cases that loop does not cover — somebody running the fixture without building it, and
+# exercising provenance and digest pinning across a real network boundary.
+on:
+  push:
+    tags: ['apps/v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  # One build per archetype, pushed straight into the repository of every component it serves. A platform records
+  # an artifact as its bytes in one repository, so two components cannot both claim one image — each gets the same
+  # bytes under its own name. One push of one build to several repositories is one index, so the digest is identical
+  # in each and what a component runs is provably what its archetype built. Nothing is published under the
+  # archetype's own name, because nothing deploys it.
+  images:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - project: Northwind.WebService
+            components: order-api checkout-bff cart-service
+          - project: Northwind.Worker
+            components: order-event-publisher
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: repositories
+        env:
+          COMPONENTS: ${{ matrix.components }}
+        run: |
+          {
+            echo 'list<<EOF'
+            for component in $COMPONENTS; do echo "$REGISTRY/$GITHUB_REPOSITORY/apps/$component"; done
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.repositories.outputs.list }}
+          tags: |
+            type=match,pattern=apps/v(.*),group=1
+            type=sha,format=long
+
+      # The digest is the point of this step. A component's build pins a digest, and a deployment
+      # records the one it resolved — so the digest this emits is what makes the seeded artifact
+      # coordinates resolvable instead of synthesised.
+      - id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: apps
+          file: apps/src/${{ matrix.project }}/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.project }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.project }}
+
+      - name: Report digest
+        env:
+          COMPONENTS: ${{ matrix.components }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          for component in $COMPONENTS; do
+            echo "apps/$component -> $DIGEST" >> "$GITHUB_STEP_SUMMARY"
+          done

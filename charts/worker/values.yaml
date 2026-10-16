@@ -1,0 +1,57 @@
+# Same values contract as web-service: Lembos renders it from a ComponentSpecVersion and does
+# not know which chart it is feeding. What differs is what the chart does with it — a worker takes
+# no ingress and its ports, if any, are for metrics rather than traffic.
+
+lembos:
+  component: ""
+  environment: ""
+  stamp: ""
+  specVersion: ""
+
+image:
+  # No archetype is published under its own name: each component's repository holds its archetype's build, and
+  # the platform sets which. This default is one that exists, so a standalone render pulls.
+  repository: ghcr.io/lembosproj/northwind/apps/order-event-publisher
+  tag: latest
+  digest: ""
+  pullPolicy: IfNotPresent
+
+replicas: 1
+
+# A worker declaring a public port is a spec error rather than something to render, so isPublic is
+# ignored here. Ports are still honoured for metrics scraping.
+ports: []
+
+resourceBindings: {}
+config: {}
+sizeClass: small
+
+sizes:
+  small:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits:   { cpu: 500m, memory: 512Mi }
+  medium:
+    requests: { cpu: 500m, memory: 512Mi }
+    limits:   { cpu: "2",  memory: 2Gi }
+  large:
+    requests: { cpu: "2",  memory: 2Gi }
+    limits:   { cpu: "4",  memory: 8Gi }
+
+# Scale to zero is the point of this blueprint: a consumer with an empty queue should cost nothing.
+autoscaling:
+  enabled: false
+  minReplicas: 0
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 70
+
+# How long the process is given to finish the message in flight before it is killed.
+terminationGracePeriodSeconds: 60
+
+serviceAccount:
+  create: true
+  annotations: {}
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

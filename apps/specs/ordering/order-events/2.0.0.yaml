@@ -1,0 +1,57 @@
+asyncapi: 3.0.0
+info:
+  title: Order Events
+  version: 2.0.0
+  description: >-
+    The order lifecycle as a stream. Anything that reacts to orders reads this rather than polling
+    the Orders API.
+servers:
+  kafka:
+    host: kafka.northwind.example:9093
+    protocol: kafka-secure
+channels:
+  orderPlaced:
+    address: northwind.ordering.order-placed
+    messages:
+      OrderPlaced:
+        $ref: '#/components/messages/OrderPlaced'
+  orderCancelled:
+    address: northwind.ordering.order-cancelled
+    messages:
+      OrderCancelled:
+        $ref: '#/components/messages/OrderCancelled'
+operations:
+  receiveOrderPlaced:
+    action: receive
+    channel:
+      $ref: '#/channels/orderPlaced'
+  receiveOrderCancelled:
+    action: receive
+    channel:
+      $ref: '#/channels/orderCancelled'
+components:
+  messages:
+    OrderPlaced:
+      name: OrderPlaced
+      contentType: application/json
+      payload:
+        type: object
+        required: [orderId, customerId, placedAt, total]
+        properties:
+          orderId: { type: string, format: uuid }
+          customerId: { type: string, format: uuid }
+          placedAt: { type: string, format: date-time }
+          total: { type: string }
+    OrderCancelled:
+      name: OrderCancelled
+      contentType: application/json
+      payload:
+        type: object
+        required: [orderId, cancelledAt, reason]
+        properties:
+          orderId: { type: string, format: uuid }
+          cancelledAt: { type: string, format: date-time }
+          reason:
+            type: string
+            description: Matches the Orders API 3.2.0 CancellationReason enum.
+            enum: [customer-request, payment-failed, out-of-stock, fraud-suspected, duplicate]
