@@ -1,9 +1,9 @@
-# One PostgreSQL cluster per slot, named the same in every slot: a database resource is created in "postgres" of the
-# namespace it lands in, so its chart never has to be told which cluster that is.
+# One PostgreSQL cluster per slot. Its name is a value rather than fixed, because the blueprint publishes it: a
+# database resource reads where to go from the environment instead of assuming it.
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: postgres
+  name: {{ .Values.postgres.name }}
   labels:
     {{- include "slot.labels" . | nindent 4 }}
 spec:
@@ -11,7 +11,7 @@ spec:
   imageName: {{ .Values.postgres.imageName }}
   storage:
     size: {{ .Values.postgres.storage }}
-  # The owner every database a resource adds is created for. CloudNativePG writes its credentials to postgres-app.
+  # The owner every database a resource adds is created for. CloudNativePG writes its credentials to <name>-app.
   bootstrap:
     initdb:
       database: app

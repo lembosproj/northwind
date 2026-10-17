@@ -18,3 +18,9 @@ redis-operator:
     resources:
       requests: {cpu: 50m, memory: 64Mi}
       limits: {memory: 256Mi}
+
+## @param redis What every cache in this environment runs.
+redis:
+  # Not used by anything installed here: the blueprint publishes it as redis_image, and a cache resource reads it,
+  # so the image a cache runs is the platform's choice, made once per environment.
+  image: quay.io/opstree/redis:v7.2.7

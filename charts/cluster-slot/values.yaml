@@ -18,6 +18,8 @@ quota:
 
 ## @param postgres The slot's PostgreSQL cluster. Resources add databases to it rather than standing up their own.
 postgres:
+  # Published by the blueprint as postgres_cluster, which is how a database resource learns where it goes.
+  name: postgres
   instances: 1
   storage: 1Gi
   # Kept equal to the one the Lembos chart's high-available mode runs.
