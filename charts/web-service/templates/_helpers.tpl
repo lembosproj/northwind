@@ -68,10 +68,11 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 
 {{- /*
   What the workload depends on, as environment variables — where each thing is and where its credential lives,
-  never the credential. A resource binding names its endpoint and its secret's path; the URL is read from a
-  Kubernetes secret only where a provisioner placed one, and is optional so a pod still starts where none did.
-  An upstream is a component this one calls: a bare host is called over HTTP, on the port its Service answers
-  every caller on.
+  never the credential in a value. A resource binding names its endpoint, a URL where the resource publishes one
+  that carries no secret, and its secret's path. The credential is read from that secret by key — the URL where a
+  provisioner placed a whole one, else the username and password an operator writes (CloudNativePG's app secret) —
+  each optional, so a pod still starts where a key is absent. An upstream is a component this one calls: a bare
+  host is called over HTTP, on the port its Service answers every caller on.
 */}}
 {{- define "webservice.dependencyEnv" -}}
 {{- range $handle, $binding := .Values.resourceBindings }}
@@ -80,15 +81,30 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 - name: {{ $name }}_ENDPOINT
   value: {{ . | quote }}
 {{- end }}
+{{- with $binding.url }}
+- name: {{ $name }}_URL
+  value: {{ . | quote }}
+{{- end }}
 {{- with $binding.secretRef }}
+{{- $secret := . | replace "/" "-" | lower | trunc 253 }}
 - name: {{ $name }}_SECRET_REF
   value: {{ . | quote }}
+{{- if not $binding.url }}
 - name: {{ $name }}_URL
   valueFrom:
     secretKeyRef:
-      name: {{ . | replace "/" "-" | lower | trunc 253 }}
+      name: {{ $secret }}
       key: url
       optional: true
+{{- end }}
+{{- range $key := list "username" "password" }}
+- name: {{ $name }}_{{ upper $key }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ $secret }}
+      key: {{ $key }}
+      optional: true
+{{- end }}
 {{- end }}
 {{- end }}
 {{- range $name, $address := .Values.upstreams }}
