@@ -1,0 +1,9 @@
+# A Redis instance of its own per cache resource. Unlike PostgreSQL, Redis has no database a shared server could
+# hand each resource — numbered databases share one keyspace's memory, eviction and ACLs — so a cache is an
+# instance, made by the operator the landing zone installs. Named after the release, so after the resource.
+
+## @param image The Redis image the operator runs.
+image: quay.io/opstree/redis:v7.2.7
+
+## @param memory What the instance may use. A cache that outgrows it evicts rather than taking the slot down.
+memory: 256Mi

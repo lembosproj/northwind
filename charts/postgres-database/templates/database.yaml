@@ -1,0 +1,14 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app.kubernetes.io/managed-by: lembos
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  name: {{ .Release.Name }}
+  owner: {{ .Values.owner }}
+  cluster:
+    name: {{ .Values.cluster }}
+  ensure: present
+  databaseReclaimPolicy: {{ .Values.reclaim }}

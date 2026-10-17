@@ -1,0 +1,11 @@
+apiVersion: v2
+name: cluster-slot
+description: The slot level for an existing Kubernetes cluster - a namespace with its own quota, policy and PostgreSQL cluster.
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.28.0-0"
+keywords: [lembos, blueprint, environment, slot]
+annotations:
+  lembos.dev/blueprint: the slot level of platform/cluster-landing-zone
+  lembos.dev/blueprint-type: Environment

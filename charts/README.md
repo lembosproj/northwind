@@ -1,12 +1,17 @@
 # Northwind Charts
 
-The Helm blueprints the Lembos sample organisation is built from. Two charts, matching the two
-`BlueprintProvisionerType.Helm` entries the Orchestrator seeds:
+The Helm blueprints the Lembos sample organisation is built from. Two component charts match the
+`BlueprintProvisionerType.Helm` entries the Orchestrator seeds; the other four are an environment on a cluster that
+already exists — the deploy quickstart's k3s — where the AWS landing zone and its Terraform modules cannot run.
 
 | Chart | Blueprint | Version | Type |
 | --- | --- | --- | --- |
 | `web-service` | `platform/helm-web-service` | 2.6.0 | Component |
 | `worker` | `platform/helm-worker` | 1.10.0 | Component |
+| `cluster-landing-zone` | `platform/cluster-landing-zone` | 1.0.0 | Environment |
+| `cluster-slot` | the slot level of `platform/cluster-landing-zone` | 1.0.0 | Environment |
+| `postgres-database` | `platform/postgres-database` | 1.0.0 | Resource |
+| `redis-instance` | `platform/redis-instance` | 1.0.0 | Resource |
 
 The chart is named for what it deploys and the blueprint for how: `helm-` says which provisioner a blueprint uses,
 which is the catalog's question, and is noise in a registry that only holds charts.
@@ -58,6 +63,32 @@ the component runs. The charts render them the same way:
 
 A handle and a name are camelCase (`ordersDb`, `orderApi`) and become SCREAMING_SNAKE (`ORDERS_DB`, `ORDER_API`).
 A web service's Service answers callers on port 80, at its first public port, so a caller needs only the host.
+
+## An environment on an existing cluster
+
+The AWS landing zone builds a cluster; these stand on one. Terraform keeps its state in the destination's own
+account, which a cluster alone does not have, so every level here is a chart.
+
+- **`cluster-landing-zone`** is the environment level: the CloudNativePG and OpsTree Redis operators, once per
+  cluster, watching every namespace. Operators only — an operator's admission webhook has to be running before the
+  first object it validates is created, and within one release it is not.
+- **`cluster-slot`** is the slot level, installed into the namespace the platform names after the slot: the slot's
+  quota and default requests, a network policy at staging and prod, the `workload` service account, and one
+  PostgreSQL cluster, `postgres`.
+- **`postgres-database`** adds a database to that cluster, named after the resource, owned by `app` — whose
+  credentials CloudNativePG keeps in `postgres-app`.
+- **`redis-instance`** is a Redis per cache: Redis has no database a shared server could hand each resource.
+
+Their blueprint versions map the outputs a component binds to (ADR014), for example:
+
+| Blueprint | Output | Type | Mapping |
+| --- | --- | --- | --- |
+| `platform/postgres-database` | `endpoint` | Template | `postgres-rw.{{ release.namespace }}.svc:5432/{{ release.name }}` |
+| `platform/postgres-database` | `secret_ref` | Template | `postgres-app` |
+| `platform/redis-instance` | `endpoint` | Template | `{{ release.name }}.{{ release.namespace }}.svc:6379` |
+
+`cluster-landing-zone` depends on the two operator charts at the versions `Chart.lock` pins; the publish workflow
+fetches them before packaging.
 
 ## How Lembos resolves these
 

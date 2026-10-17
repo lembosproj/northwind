@@ -1,0 +1,2 @@
+Operators installed for {{ .Release.Name }}: CloudNativePG {{ (index .Subcharts "cloudnative-pg").Chart.AppVersion }} and the OpsTree Redis operator {{ (index .Subcharts "redis-operator").Chart.AppVersion }}.
+Each slot of the environment builds its PostgreSQL cluster on them.

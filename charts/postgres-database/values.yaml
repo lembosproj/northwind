@@ -1,0 +1,14 @@
+# A database in the PostgreSQL cluster the slot level of platform/cluster-landing-zone stood up — a resource as one
+# more database, not one more server, the way a team asks for one from a shared managed instance.
+#
+# Named after the release, which the platform names after the resource, so the database and the catalog entry share
+# a name and the blueprint's endpoint output can say which database it is without reading these values.
+
+## @param cluster The CloudNativePG cluster in this namespace to create the database in.
+cluster: postgres
+
+## @param owner The role that owns it. The slot's cluster creates "app", whose credentials are in postgres-app.
+owner: app
+
+## @param reclaim What happens to the data when the resource is torn down - delete, or retain to keep it.
+reclaim: delete

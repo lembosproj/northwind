@@ -1,0 +1,28 @@
+apiVersion: redis.redis.opstreelabs.in/v1beta2
+kind: Redis
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app.kubernetes.io/managed-by: lembos
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  kubernetesConfig:
+    image: {{ .Values.image }}
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests: {cpu: 50m, memory: 64Mi}
+      limits: {memory: {{ .Values.memory | quote }}}
+  # Evicts the least recently used keys at the limit, which is what a cache is for; the default refuses writes.
+  redisConfig:
+    additionalRedisConfig: {{ .Release.Name }}-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+  labels:
+    app.kubernetes.io/managed-by: lembos
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  redis-additional.conf: |
+    maxmemory-policy allkeys-lru

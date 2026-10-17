@@ -1,0 +1,20 @@
+# The environment level of platform/cluster-landing-zone: what one cluster needs before any slot can stand on it.
+#
+# It installs operators and nothing they operate. The database and cache instances are the slot level's and the
+# resources', because an operator's admission webhook has to be running before the first object it validates is
+# created — and in one release, it is not.
+
+## @param cloudnative-pg CloudNativePG, the operator a slot's PostgreSQL cluster and every database in it are made by.
+cloudnative-pg:
+  fullnameOverride: cnpg
+  # Small: a laptop runs this beside everything else the quickstart starts.
+  resources:
+    requests: {cpu: 50m, memory: 128Mi}
+    limits: {memory: 256Mi}
+
+## @param redis-operator The OpsTree Redis operator, which makes each cache a resource declares.
+redis-operator:
+  redisOperator:
+    resources:
+      requests: {cpu: 50m, memory: 64Mi}
+      limits: {memory: 256Mi}

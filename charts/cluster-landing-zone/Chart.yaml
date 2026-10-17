@@ -1,0 +1,20 @@
+apiVersion: v2
+name: cluster-landing-zone
+description: The environment level for an existing Kubernetes cluster - the operators every slot's data services are built by.
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.28.0-0"
+keywords: [lembos, blueprint, environment, landing-zone]
+annotations:
+  lembos.dev/blueprint: platform/cluster-landing-zone
+  lembos.dev/blueprint-type: Environment
+# The two operators, as charts of their own rather than copied manifests, so an upgrade is a version here. Both
+# watch every namespace, which is what lets one installation serve every slot of the environment.
+dependencies:
+  - name: cloudnative-pg
+    version: 0.29.1
+    repository: https://cloudnative-pg.github.io/charts
+  - name: redis-operator
+    version: 0.27.0
+    repository: https://ot-container-kit.github.io/helm-charts

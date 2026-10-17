@@ -36,6 +36,18 @@ jobs:
       - name: Log in to the registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login "$REGISTRY" -u "${{ github.actor }}" --password-stdin
 
+      # A chart built on other charts — the landing zone installs two operators — carries them in its package, fetched
+      # at exactly the versions Chart.yaml pins. A chart with no dependencies has nothing to build.
+      - name: Fetch dependencies
+        env:
+          CHART: ${{ steps.tag.outputs.chart }}
+        run: |
+          if grep -q '^dependencies:' "charts/$CHART/Chart.yaml"; then
+            helm repo add cnpg https://cloudnative-pg.github.io/charts
+            helm repo add ot-helm https://ot-container-kit.github.io/helm-charts
+            helm dependency build "charts/$CHART"
+          fi
+
       # The tag is the version, not Chart.yaml's: a blueprint version names the tag, and a version cut from an older
       # commit — a deprecated line, a release candidate — has to be the number its tag says rather than whatever
       # that commit's Chart.yaml was last bumped to.

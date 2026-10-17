@@ -1,1 +1,6 @@
 .DS_Store
+
+# Operator charts a chart depends on, fetched by `helm dependency build` from the versions Chart.lock pins.
+charts/*/charts/
+
+.idea/

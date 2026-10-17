@@ -1,0 +1,24 @@
+# The slot level of platform/cluster-landing-zone: what one slot *is* on the cluster its environment level prepared.
+#
+# Installed into the slot's namespace, which the release creates — the platform names it after the slot — so the
+# namespace itself is not an object here. What is: the slot's share of the cluster, who its workloads run as, and the
+# PostgreSQL cluster every database a resource declares in this slot is created in.
+
+## @param stage dev, test, staging or prod. Staging and prod get a network policy naming their callers.
+stage: dev
+
+## @param dimensions The slot's dimensions, written onto its objects as labels so a placement is legible on the cluster.
+dimensions: {}
+
+## @param quota What this slot may consume of the cluster it shares with the environment's other slots.
+quota:
+  cpu: "4"
+  memory: 8Gi
+  pods: 40
+
+## @param postgres The slot's PostgreSQL cluster. Resources add databases to it rather than standing up their own.
+postgres:
+  instances: 1
+  storage: 1Gi
+  # Kept equal to the one the Lembos chart's high-available mode runs.
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.6
