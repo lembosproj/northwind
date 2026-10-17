@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "resourceBindings": {
+      "description": "What it depends on, by handle: where each resource is, how to connect, and the secret its credential is in.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "endpoint": { "type": "string", "description": "Where it is: host and port, and a database's name." },
+          "url": { "type": "string", "description": "How to connect, where the resource publishes a URL with no secret in it." },
+          "secretRef": { "type": "string", "description": "The secret holding the credential. Never the credential." }
+        },
+        "additionalProperties": false
+      }
+    },
+    "upstreams": {
+      "description": "The components it calls, by name: each one's host, or a whole URL.",
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    }
+  }
+}
