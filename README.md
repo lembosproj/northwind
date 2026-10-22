@@ -31,6 +31,36 @@ Push tags **one at a time**. GitHub starts no workflow for a push of more than t
 Each run lists the digest it produced in its summary, which is the value the platform's seed pins. A published
 version is never pushed again: its digest would change under the pin, which the platform reports as a mismatch.
 
+## Registering builds with the platform
+
+A push that changes an app also registers each component's image with a Lembos platform as that component's
+artifact, through the platform's
+[publish-artifact action](https://github.com/lembosproj/platform/tree/main/src/Integrations/GitHub/publish-artifact).
+The build then shows on the component's **Artifacts** tab, with this repository, the commit, the ref and the run as
+its provenance. The `register` job in `apps.yml` does it after the images are pushed. It is skipped when no
+platform is configured, so a fork builds without one.
+
+It signs in as one service account for the whole northwind GitHub organisation, which is one account per CI
+system. An Administrator created it in the Portal under **Organization → Service accounts**:
+
+| Setting | Value | Why |
+| --- | --- | --- |
+| Name | `northwind-github` | The CI system it serves |
+| Owner | **Commerce Tribe** | The lowest group above the Ordering and Checkout squads, which own every component built here. Owning a group gives the account reach over its subtree |
+| Role | **Maintainer** | Holds `infrastructure:artifacts:write`, and the reads the action makes |
+
+Creating it downloaded `<client id>.pem` once. The repository (or the organisation) holds:
+
+| Name | Type | Value |
+| --- | --- | --- |
+| `LEMBOS_CLIENT_ID` | secret | The account's client id |
+| `LEMBOS_PRIVATE_KEY` | secret | The whole `.pem` file |
+| `LEMBOS_IDENTITY_URL` | variable | The platform's Identity Server |
+| `LEMBOS_ORCHESTRATOR_URL` | variable | The platform's Orchestrator API; unset, the `register` job is skipped |
+
+A component owned outside Commerce Tribe, such as `platform/order-flow-monitor`, is out of the account's reach.
+Building one here would need an owner group above both, or a second account.
+
 ## The versions the seed expects
 
 | Package | Version | Seeded as |
