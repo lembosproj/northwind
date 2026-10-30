@@ -80,4 +80,4 @@ Building one here would need an owner group above both, or a second account.
 
 The deprecated versions and the release candidate are the charts before they took a component's dependencies.
 
-Packages must be **public**: the seed carries no source credential, so the platform fetches anonymously.
+Packages must be **public**: the seed carries no credential, so the platform fetches anonymously.
