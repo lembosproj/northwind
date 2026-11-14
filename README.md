@@ -72,7 +72,7 @@ Building one here would need an owner group above both, or a second account.
 | `charts/web-service` | 2.6.0 | current |
 | `charts/worker` | 1.9.0 | deprecated |
 | `charts/worker` | 1.10.0 | current |
-| `modules/postgres-cluster` | 3.3.1 | current |
+| `modules/postgres-cluster` | 3.4.0 | current |
 | `modules/redis-cache` | 2.0.3 | current |
 | `modules/aws-landing-zone` | 2.0.0 | current |
 | `modules/kubernetes-namespace` | 1.3.0 | the landing zone's slot level |

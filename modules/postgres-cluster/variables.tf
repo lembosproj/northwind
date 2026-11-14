@@ -39,3 +39,11 @@ variable "engine_version" {
   type        = string
   default     = "16.4"
 }
+
+# Not part of the contract above: only a blueprint that binds it to the resource's retention passes it, so it must
+# have a default.
+variable "snapshot_before_destroy" {
+  description = "Take a final snapshot when the instance is destroyed or replaced."
+  type        = bool
+  default     = false
+}

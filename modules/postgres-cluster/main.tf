@@ -51,9 +51,14 @@ resource "aws_db_instance" "this" {
   password = random_password.master.result
 
   backup_retention_period = local.backup_retention
-  skip_final_snapshot     = local.backup_retention < 30
   deletion_protection     = local.backup_retention >= 30
   apply_immediately       = true
+
+  # A destroy keeps a copy when the resource's retention asks for one, which the platform passes in. It is not a
+  # stage decision like the backups above. The AWS provider refuses to take that copy without a name for it, so the
+  # two settings always change together.
+  skip_final_snapshot       = !var.snapshot_before_destroy
+  final_snapshot_identifier = var.snapshot_before_destroy ? "${local.identifier}-final" : null
 
   tags = local.tags
 }

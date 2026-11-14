@@ -5,7 +5,7 @@ The Terraform blueprints the Lembos sample organisation is built from, one per
 
 | Module | Blueprint | Version | Type |
 | --- | --- | --- | --- |
-| `postgres-cluster` | `platform/postgres-cluster` | 3.3.1 | Resource |
+| `postgres-cluster` | `platform/postgres-cluster` | 3.4.0 | Resource |
 | `redis-cache` | `platform/redis-cache` | 2.0.3 | Resource |
 | `aws-landing-zone` | `platform/aws-landing-zone` | 2.0.0 | Environment |
 | `kubernetes-namespace` | the slot level of `platform/aws-landing-zone` | 1.3.0 | Environment |
@@ -41,6 +41,17 @@ knows about the run, so a resource's spec has nothing it must supply:
 **What a size class means is decided per module, in its `locals`.** That is deliberate: `small` for
 Postgres is a different decision from `small` for Redis, and the developer declaring the need should not
 have to know either.
+
+A module may take more than these five, but each extra input needs a default: a run is only sure to pass
+the five. `postgres-cluster` takes one more:
+
+| Variable | Answered by |
+| --- | --- |
+| `snapshot_before_destroy` | the Resource's retention — `retention.snapshotBeforeDestroy` — false when the blueprint does not bind it |
+
+When it is true, destroying or replacing the instance first takes a snapshot named `{identifier}-final`. The
+name is the same each time for one placement, so delete that snapshot before the placement is destroyed with
+a snapshot again.
 
 Every resource module returns the same four outputs:
 
