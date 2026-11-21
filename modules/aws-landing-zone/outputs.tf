@@ -51,7 +51,7 @@ output "node_security_group_id" {
 
 output "region" {
   description = "Where the cluster is, which every slot's Kubernetes target is reached in."
-  value       = var.region
+  value       = data.aws_region.current.region
 }
 
 output "cluster_name" {

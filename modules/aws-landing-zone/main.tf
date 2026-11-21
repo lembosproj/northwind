@@ -4,6 +4,14 @@
 # Built once per environment and shared by every slot in it: a slot is a namespace on this cluster, not a
 # landing zone of its own. So nothing here is named after a slot — the environment's name is the whole identity.
 
+# The region is the one its provider is configured in, which the environment's entry for its account pins. Read here
+# rather than given as an input too: two answers could disagree, and AWS refuses a subnet in another region's zone.
+data "aws_region" "current" {}
+
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
 locals {
   slug    = replace(var.name, "/", "-")
   cluster = substr(local.slug, 0, 38)
@@ -26,7 +34,7 @@ locals {
   # below it, because three idle NAT gateways is a bill without a reader.
   nat_count = var.stage == "prod" ? var.availability_zones : 1
 
-  zones = [for index in range(var.availability_zones) : "${var.region}${substr("abcd", index, 1)}"]
+  zones = slice(data.aws_availability_zones.available.names, 0, min(var.availability_zones, length(data.aws_availability_zones.available.names)))
 
   secret_ref = "${var.name}/kubeconfig"
   domain     = var.ingress_domain != "" ? var.ingress_domain : "${local.slug}.internal"
@@ -51,6 +59,13 @@ resource "aws_vpc" "this" {
   enable_dns_hostnames = true
   enable_dns_support   = true
   tags                 = merge(local.tags, { Name = local.cluster })
+
+  lifecycle {
+    precondition {
+      condition     = length(data.aws_availability_zones.available.names) >= var.availability_zones
+      error_message = "${data.aws_region.current.region} has ${length(data.aws_availability_zones.available.names)} available zones, and availability_zones asks for ${var.availability_zones}."
+    }
+  }
 }
 
 resource "aws_internet_gateway" "this" {
@@ -395,16 +410,33 @@ resource "aws_route53_zone" "this" {
 
 # One record for everything the environment publishes. A component's ingress host is built from this, so a
 # new component needs no DNS change of its own.
-resource "aws_route53_record" "wildcard" {
-  zone_id = aws_route53_zone.this.zone_id
-  name    = "*.${local.domain}"
-  type    = "A"
+#
+# Made by a CloudFormation stack rather than as an aws_route53_record. Route 53 returns the "*" of a wildcard as
+# "\052", and the provider finds a record by that form after it makes one. Floci 2.x returns "*", so the provider
+# reads the record it has just made as missing and the apply fails. The stack makes the same record on AWS and on
+# Floci, and the provider reads back the stack instead. Go back to aws_route53_record once Floci returns "\052".
+resource "aws_cloudformation_stack" "wildcard" {
+  name = "${local.cluster}-ingress-dns"
 
-  alias {
-    name                   = aws_lb.this.dns_name
-    zone_id                = aws_lb.this.zone_id
-    evaluate_target_health = true
-  }
+  template_body = jsonencode({
+    Resources = {
+      Wildcard = {
+        Type = "AWS::Route53::RecordSet"
+        Properties = {
+          HostedZoneId = aws_route53_zone.this.zone_id
+          Name         = "*.${local.domain}"
+          Type         = "A"
+          AliasTarget = {
+            DNSName              = aws_lb.this.dns_name
+            HostedZoneId         = aws_lb.this.zone_id
+            EvaluateTargetHealth = true
+          }
+        }
+      }
+    }
+  })
+
+  tags = local.tags
 }
 
 # ── How something reaches the cluster ──

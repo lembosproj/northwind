@@ -17,11 +17,17 @@ are named after the environment alone (`northwind/prod` builds `northwind-prod`)
 | Cluster | EKS control plane and a managed node group, sized by stage |
 | Ingress | An application load balancer, a default target group and listener, a private hosted zone, and a wildcard record pointing at the balancer |
 
-## Why it takes a region rather than reading one
+## Why it reads its region from its provider
 
 An account spans regions, so the region is the environment version's answer. It is one region per environment:
 a VPC and an EKS cluster are both regional and every slot shares them, so an estate in two regions is two
-environments. It is published as the `region` output, which is where each slot's Kubernetes target reads it.
+environments.
+
+The environment gives that answer once, as the region its entry for the account pins, which the provider is
+configured in. The module reads it from the provider (`aws_region`) and takes its zones from the region's available
+ones (`aws_availability_zones`), rather than taking the region as an input too. Up to 2.0.0 it did, and the two
+could disagree: with no region pinned, the provider fell back to `us-east-1`, and AWS refused subnets in
+`eu-west-1a` there. It is published as the `region` output, which is where each slot's Kubernetes target reads it.
 
 ## Against the emulator
 
@@ -29,7 +35,12 @@ Every control-plane call here succeeds against Floci, and the EKS cluster is rea
 container with an IAM authentication webhook, so `aws eks get-token` and `kubectl` both work.
 
 What is metadata only: NAT gateways route nothing, the load balancer has no data plane, and Route53 names
-do not resolve. A run therefore proves the recipe applies, the state is kept, and the outputs are produced
+do not resolve.
+
+The wildcard record is made by a CloudFormation stack rather than as an `aws_route53_record`. Route 53 returns
+the `*` of a wildcard as `\052`, and the provider looks the record up by that form once it has made it. Floci 2.x
+returns `*`, so the provider reads the new record as missing and the apply fails. The stack makes the same record
+on AWS and on Floci. This goes back to `aws_route53_record` once Floci returns `\052`. A run therefore proves the recipe applies, the state is kept, and the outputs are produced
 — not that traffic flows. The difference is confined to the emulator: no variable here mentions it, because
 the provider and the endpoints are the root module's business, which is what lets this run unchanged
 against a real account.

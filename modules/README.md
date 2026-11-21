@@ -7,7 +7,7 @@ The Terraform blueprints the Lembos sample organisation is built from, one per
 | --- | --- | --- | --- |
 | `postgres-cluster` | `platform/postgres-cluster` | 3.5.0 | Resource |
 | `redis-cache` | `platform/redis-cache` | 2.1.0 | Resource |
-| `aws-landing-zone` | `platform/aws-landing-zone` | 2.0.0 | Environment |
+| `aws-landing-zone` | `platform/aws-landing-zone` | 3.0.0 | Environment |
 | `kubernetes-namespace` | the slot level of `platform/aws-landing-zone` | 1.4.0 | Environment |
 
 Each version is an OpenTofu module package in the registry —

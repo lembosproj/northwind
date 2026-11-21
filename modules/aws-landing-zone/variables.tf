@@ -26,16 +26,6 @@ variable "stage" {
   }
 }
 
-variable "region" {
-  description = <<-EOT
-    Where it is built. The environment's answer rather than the account's: an account spans regions. One
-    region per environment, because a VPC and a cluster are both regional and every slot shares them — an
-    estate in two regions is two environments.
-  EOT
-  type        = string
-  default     = "eu-west-1"
-}
-
 variable "cidr_block" {
   description = "The VPC's address space. Wide enough for the subnets below to be carved out of it."
   type        = string
@@ -49,8 +39,9 @@ variable "cidr_block" {
 
 variable "availability_zones" {
   description = <<-EOT
-    How many zones to spread across. Two is the floor, because an EKS control plane will not come up in
-    one and an environment that cannot survive a zone is not a production environment.
+    How many zones to spread across, taken in order from the region's available zones. Two is the floor,
+    because an EKS control plane will not come up in one and an environment that cannot survive a zone is
+    not a production environment.
   EOT
   type        = number
   default     = 2
