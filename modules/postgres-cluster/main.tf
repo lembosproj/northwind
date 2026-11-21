@@ -6,7 +6,7 @@ locals {
   # One per placement. The same resource stands in every slot it is placed in, and an instance identifier is unique
   # per account and region — two slots of one environment share both. Cut to leave room under the 63 characters RDS
   # allows for a replica's "-replica-N", with a hash of the whole so two long names still differ.
-  placement  = lower(join("-", [replace(var.environment, "/", "-"), var.stamp, local.slug]))
+  placement  = lower(join("-", [replace(var.environment, "/", "-"), var.slot, local.slug]))
   identifier = length(local.placement) <= 50 ? local.placement : "${trimsuffix(substr(local.placement, 0, 41), "-")}-${substr(md5(local.placement), 0, 8)}"
 
   # What a size class means for Postgres. The platform team owns this table; the developer who
@@ -22,12 +22,12 @@ locals {
   # size decision, which is why it is not in the table above.
   backup_retention = can(regex("prod", var.environment)) ? 30 : 7
 
-  secret_ref = "${var.environment}/${var.stamp}/${var.name}"
+  secret_ref = "${var.environment}/${var.slot}/${var.name}"
 
   tags = merge(var.tags, {
     "lembos.dev/resource"    = var.name
     "lembos.dev/environment" = var.environment
-    "lembos.dev/stamp"       = var.stamp
+    "lembos.dev/slot"        = var.slot
   })
 }
 

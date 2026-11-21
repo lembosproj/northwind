@@ -69,14 +69,16 @@ Building one here would need an owner group above both, or a second account.
 | `charts/web-service` | 2.3.0 | withdrawn and **never published** — the seed expects it to be missing |
 | `charts/web-service` | 2.4.0 | deprecated |
 | `charts/web-service` | 2.5.0-rc.1 | staged |
-| `charts/web-service` | 2.6.0 | current |
+| `charts/web-service` | 2.6.0 | deprecated |
+| `charts/web-service` | 2.9.0 | current |
 | `charts/worker` | 1.9.0 | deprecated |
-| `charts/worker` | 1.10.0 | current |
-| `modules/postgres-cluster` | 3.4.0 | current |
-| `modules/redis-cache` | 2.0.3 | current |
+| `charts/worker` | 1.10.0 | deprecated |
+| `charts/worker` | 1.11.0 | current |
+| `modules/postgres-cluster` | 3.5.0 | current |
+| `modules/redis-cache` | 2.1.0 | current |
 | `modules/aws-landing-zone` | 2.0.0 | current |
-| `modules/kubernetes-namespace` | 1.3.0 | the landing zone's slot level |
-| `apps/*` | 1.1.0 | each component's build |
+| `modules/kubernetes-namespace` | 1.4.0 | the landing zone's slot level |
+| `apps/*` | 1.2.0 | each component's build |
 
 The deprecated versions and the release candidate are the charts before they took a component's dependencies.
 

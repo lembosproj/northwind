@@ -1,7 +1,7 @@
 {{- define "slot.labels" -}}
 app.kubernetes.io/managed-by: lembos
 app.kubernetes.io/part-of: {{ .Release.Name }}
-lembos.dev/stamp: {{ .Release.Namespace }}
+lembos.dev/slot: {{ .Release.Namespace }}
 lembos.dev/stage: {{ .Values.stage }}
 {{- range $key, $value := .Values.dimensions }}
 lembos.dev/{{ $key }}: {{ $value | quote }}

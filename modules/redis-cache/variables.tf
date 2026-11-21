@@ -22,8 +22,8 @@ variable "environment" {
   type        = string
 }
 
-variable "stamp" {
-  description = "The Stamp this instance occupies, e.g. eu-west."
+variable "slot" {
+  description = "The slot this instance occupies, e.g. eu-west."
   type        = string
   default     = "default"
 }

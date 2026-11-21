@@ -23,18 +23,18 @@ seed pins.
 `Northwind.Runtime` is the library both share.
 
 That is the point rather than a shortcut. A platform does not care what a workload computes; it cares
-which blueprint built it, which spec version it is running, and whether what is running matches what was
-asked for.
+which blueprint built it, where it runs, and whether what is running matches what was asked for.
 
 ## Why these report their own identity
 
-Every app reads `LEMBOS_COMPONENT`, `LEMBOS_ENVIRONMENT`, `LEMBOS_STAMP` and `LEMBOS_SPEC_VERSION` from
-its environment and reports them back — the web service on `/identity`, the others in structured logs.
+Every app reads `LEMBOS_COMPONENT`, `LEMBOS_ENVIRONMENT` and `LEMBOS_SLOT` from its environment and reports them
+back — the web service on `/identity`, the others in structured logs — so a log line or a request says which placement
+answered it.
 
-**This is what makes drift observable.** `RuntimeInstance` records a desired state and an observed one,
-and the gap between them is the platform's actual work. Without a workload that reports which spec
-version it is actually running, observed state can only ever be inferred from the fact that a pod
-exists — which cannot tell a successful deployment from a stale one that was never replaced.
+**Nothing that changes from one deploy to the next.** A spec version in a pod's environment restarted every pod at
+every spec version, one that changed nothing included. What a placement is running is the platform's to say: every
+object a release installs carries the label `lembos.dev/instance`, and the platform's drift check compares what stands
+with what the release applied.
 
 `/readyz` fails while a resource binding says nowhere to connect, so an instance that was never wired reports
 unready rather than ready. Health and drift are different axes, and this is the app half of keeping them apart.

@@ -4,29 +4,24 @@ namespace Northwind.Runtime;
 /// Who this process is, in the platform's terms, read from the environment the deployment set.
 /// </summary>
 /// <remarks>
-/// Declared once and shared by all three container archetypes, because the Execution Agent reads
-/// observed state the same way whichever blueprint produced the workload. Spelled per app they would
-/// drift, and a stamp reported under two different keys is a runtime instance that cannot be matched
-/// to the one that was asked for.
+/// Declared once and shared by every archetype, so a log line or a request names the placement that
+/// answered it in the same words whichever chart deployed the workload.
 /// </remarks>
 public sealed record WorkloadIdentity(
     string Component,
     string Environment,
-    string Stamp,
-    string SpecVersion)
+    string Slot)
 {
     /// <summary>Reads the identity a Lembos deployment injects. Unset values read as "unknown".</summary>
     /// <remarks>
     /// Unknown rather than empty or a throw: a workload started outside the platform — on a laptop, in a
-    /// test — is a legitimate way to run these, and one that refused to start without a stamp would make
-    /// the archetypes undebuggable. Reporting "unknown" is also the honest observed state, and it will
-    /// not match any desired state, so the instance shows as drifted rather than as agreeing by accident.
+    /// test — is a legitimate way to run these, and one that refused to start without a slot would make
+    /// the archetypes hard to debug.
     /// </remarks>
     public static WorkloadIdentity FromEnvironment() => new(
         Read("LEMBOS_COMPONENT"),
         Read("LEMBOS_ENVIRONMENT"),
-        Read("LEMBOS_STAMP"),
-        Read("LEMBOS_SPEC_VERSION"));
+        Read("LEMBOS_SLOT"));
 
     private static string Read(string key)
     {
@@ -35,5 +30,5 @@ public sealed record WorkloadIdentity(
     }
 
     public override string ToString() =>
-        $"{Component}@{SpecVersion} in {Environment}/{Stamp}";
+        $"{Component} in {Environment}/{Slot}";
 }

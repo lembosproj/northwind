@@ -1,10 +1,10 @@
 # The second of two substrate levels. The environment's landing zone builds a cluster; this builds what one
-# stamp *is* on that cluster — a namespace, its quota, its network policy, and the identity workloads in it
+# slot *is* on that cluster — a namespace, its quota, its network policy, and the identity workloads in it
 # run as.
 #
 # Every cluster input is read from the foundation through `environment.outputs.*` rather than configured
-# here. A stamp sits on the landing zone its environment resolved to, and naming a second one would be how
-# the two come to disagree about which cluster the stamp is on.
+# here. A slot sits on the landing zone its environment resolved to, and naming a second one would be how
+# the two come to disagree about which cluster the slot is on.
 
 variable "cluster_name" {
   description = "The cluster this namespace is created on, from environment.outputs.cluster_name."
@@ -29,7 +29,7 @@ variable "cluster_ca" {
 
 variable "name" {
   description = <<-EOT
-    The namespace. One per stamp, named for the destination and the slot — two stamps of one environment
+    The namespace. One per slot, named for the destination and the slot's name — two slots of one environment
     share a cluster whenever they resolve to the same placement, so a name derived from the environment
     alone would have them collide.
   EOT
@@ -49,9 +49,9 @@ variable "stage" {
 
 variable "labels" {
   description = <<-EOT
-    The stamp's dimensions, rendered as labels so a placement decision is legible on the cluster itself.
+    The slot's dimensions, rendered as labels so a placement decision is legible on the cluster itself.
 
-    This is the whole reason a stamp is a boundary rather than a naming convention: `kubectl get ns -l
+    This is the whole reason a slot is a boundary rather than a naming convention: `kubectl get ns -l
     lembos.dev/country=nl` answers "what is running for the Netherlands" without anybody having to know how
     the platform names things.
   EOT
@@ -63,7 +63,7 @@ variable "quota" {
   description = <<-EOT
     What this slot may consume of the cluster it shares.
 
-    Supplied by the stamp, which is the level that knows: production's two regions are entitled to the same
+    Supplied by the slot, which is the level that knows: production's two regions are entitled to the same
     as each other and to more than a preview, and none of that is a fact about the landing zone underneath
     them.
   EOT

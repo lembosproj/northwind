@@ -5,8 +5,7 @@
 lembos:
   component: ""       # qualified name, e.g. ordering/order-api
   environment: ""     # e.g. northwind/prod
-  stamp: ""           # e.g. eu-west
-  specVersion: ""
+  slot: ""            # e.g. eu-west
 
 image:
   # No archetype is published under its own name: each component's repository holds its archetype's build, and

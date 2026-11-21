@@ -29,8 +29,7 @@ spec version and does not know which chart it is feeding:
 lembos:                 # who this is, resolved by the deployment workflow
   component: ordering/order-api
   environment: northwind/prod
-  stamp: eu-west
-  specVersion: "1.4.0"
+  slot: eu-west
 image:
   repository: ghcr.io/lembosproj/northwind/apps/order-api
   digest: ""            # pinned artifact digest; wins over tag when set

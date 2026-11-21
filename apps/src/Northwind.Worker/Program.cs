@@ -37,8 +37,8 @@ internal sealed class ConsumerService(ILogger<ConsumerService> logger) : Backgro
             if (polls++ % ProbeEvery == 0)
                 await ReportDependenciesAsync(probe, upstreams, bindings, stoppingToken);
 
-            logger.LogInformation("Polled. component={Component} spec={SpecVersion} stamp={Stamp}",
-                identity.Component, identity.SpecVersion, identity.Stamp);
+            logger.LogInformation("Polled. component={Component} slot={Slot}",
+                identity.Component, identity.Slot);
 
             try
             {

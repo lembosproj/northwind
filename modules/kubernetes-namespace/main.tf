@@ -1,8 +1,8 @@
-# What one stamp *is*, on the cluster its environment built.
+# What one slot *is*, on the cluster its environment built.
 #
-# The landing zone is shared by every stamp resolving to the same placement — one VPC, one cluster, one
+# The landing zone is shared by every slot resolving to the same placement — one VPC, one cluster, one
 # ingress. This is the part that is not shared: a namespace with its own quota, its own network policy and
-# its own identity, so that two stamps on one cluster are a boundary rather than a naming convention.
+# its own identity, so that two slots on one cluster are a boundary rather than a naming convention.
 #
 # Nothing here creates a cluster. If this module finds itself needing to, the environment named no
 # foundation and the two levels have been confused.
@@ -15,7 +15,7 @@ locals {
 
   labels = merge(var.labels, {
     "app.kubernetes.io/managed-by" = "lembos"
-    "lembos.dev/stamp"             = var.name
+    "lembos.dev/slot"              = var.name
     "lembos.dev/stage"             = var.stage
   })
 
@@ -46,11 +46,11 @@ resource "kubernetes_namespace_v1" "this" {
   }
 }
 
-# What this stamp may consume of a cluster it shares. Without it one stamp's runaway deployment is every
-# stamp's outage, which is the failure a shared cluster exists to be worth risking.
+# What this slot may consume of a cluster it shares. Without it one slot's runaway deployment is every
+# slot's outage, which is the failure a shared cluster exists to be worth risking.
 resource "kubernetes_resource_quota_v1" "this" {
   metadata {
-    name      = "stamp"
+    name      = "slot"
     namespace = kubernetes_namespace_v1.this.metadata[0].name
   }
 
@@ -98,7 +98,7 @@ resource "kubernetes_network_policy_v1" "ingress" {
   count = local.restricted ? 1 : 0
 
   metadata {
-    name      = "stamp-ingress"
+    name      = "slot-ingress"
     namespace = kubernetes_namespace_v1.this.metadata[0].name
   }
 
@@ -128,7 +128,7 @@ resource "kubernetes_network_policy_v1" "ingress" {
     }
 
     # The ingress controller, which lives outside this namespace and is how anything from outside the
-    # cluster arrives. Omitted, a restricted stamp publishes nothing.
+    # cluster arrives. Omitted, a restricted slot publishes nothing.
     ingress {
       from {
         namespace_selector {
@@ -150,7 +150,7 @@ resource "kubernetes_network_policy_v1" "ingress" {
 
 # The identity workloads in this namespace assume, bound to the cluster's OIDC issuer by the landing zone's
 # provider. It carries no policy: what a component may do in the account is that component's decision, and
-# granting it here would give every workload in the stamp the union of them.
+# granting it here would give every workload in the slot the union of them.
 resource "kubernetes_service_account_v1" "this" {
   metadata {
     name      = "workload"
@@ -159,7 +159,7 @@ resource "kubernetes_service_account_v1" "this" {
   }
 }
 
-# The path, not the token. Recorded so a deployment into this stamp has one place to look for how to
+# The path, not the token. Recorded so a deployment into this slot has one place to look for how to
 # authenticate, and so that what leaves this module is a reference rather than a credential.
 resource "aws_secretsmanager_secret" "service_account" {
   name = local.secret_ref

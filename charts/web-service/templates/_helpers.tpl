@@ -9,8 +9,8 @@ into one namespace cannot collide and the object name is traceable back to the c
 
 {{- define "webservice.fullname" -}}
 {{- $n := include "webservice.name" . -}}
-{{- if .Values.lembos.stamp -}}
-{{- printf "%s-%s" $n .Values.lembos.stamp | trunc 63 | trimSuffix "-" -}}
+{{- if .Values.lembos.slot -}}
+{{- printf "%s-%s" $n .Values.lembos.slot | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
 {{- $n -}}
 {{- end -}}
@@ -32,8 +32,7 @@ app.kubernetes.io/managed-by: lembos
 {{- /* A label value cannot hold "/": a qualified name is written with "." in its place. */}}
 lembos.dev/component: {{ .Values.lembos.component | replace "/" "." | trunc 63 | trimSuffix "." | quote }}
 lembos.dev/environment: {{ .Values.lembos.environment | replace "/" "." | trunc 63 | trimSuffix "." | quote }}
-lembos.dev/stamp: {{ .Values.lembos.stamp | quote }}
-lembos.dev/spec-version: {{ .Values.lembos.specVersion | quote }}
+lembos.dev/slot: {{ .Values.lembos.slot | quote }}
 {{- end -}}
 
 {{- define "webservice.selectorLabels" -}}

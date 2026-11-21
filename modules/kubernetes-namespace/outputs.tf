@@ -1,4 +1,4 @@
-# What a deployment into this stamp reads, as environment.outputs.*. The first four are the contract every
+# What a deployment into this slot reads, as environment.outputs.*. The first four are the contract every
 # module here answers to, so anything reading a provisioning's outputs reads them the same way.
 
 output "resource_id" {
@@ -21,7 +21,7 @@ output "secret_ref" {
 }
 
 output "namespace" {
-  description = "What a deployment into this stamp is applied to."
+  description = "What a deployment into this slot is applied to."
   value       = kubernetes_namespace_v1.this.metadata[0].name
 }
 

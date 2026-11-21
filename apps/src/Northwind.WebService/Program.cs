@@ -26,14 +26,13 @@ app.MapGet("/readyz", () =>
         : Results.Json(new { status = "unready", unconfigured }, statusCode: 503);
 });
 
-// What the platform reads to learn observed state. Reporting the spec version is the whole point:
-// a pod that exists proves something is running, not that the right thing is.
+// Which placement answered, and what it was wired to: the first thing to ask of a request that reached
+// somewhere unexpected.
 app.MapGet("/identity", () => Results.Ok(new
 {
     identity.Component,
     identity.Environment,
-    identity.Stamp,
-    identity.SpecVersion,
+    identity.Slot,
     Bindings = bindings.Select(ResourceBindings.Describe),
     Upstreams = upstreams.Select(upstream => new { upstream.Name, Url = upstream.Url.ToString() })
 }));
@@ -51,6 +50,6 @@ app.MapGet("/dependencies", async (DependencyProbe probe, CancellationToken ct) 
     });
 });
 
-app.MapGet("/", () => Results.Ok(new { service = identity.Component, version = identity.SpecVersion }));
+app.MapGet("/", () => Results.Ok(new { service = identity.Component }));
 
 app.Run();
