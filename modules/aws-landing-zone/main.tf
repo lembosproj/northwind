@@ -410,33 +410,16 @@ resource "aws_route53_zone" "this" {
 
 # One record for everything the environment publishes. A component's ingress host is built from this, so a
 # new component needs no DNS change of its own.
-#
-# Made by a CloudFormation stack rather than as an aws_route53_record. Route 53 returns the "*" of a wildcard as
-# "\052", and the provider finds a record by that form after it makes one. Floci 2.x returns "*", so the provider
-# reads the record it has just made as missing and the apply fails. The stack makes the same record on AWS and on
-# Floci, and the provider reads back the stack instead. Go back to aws_route53_record once Floci returns "\052".
-resource "aws_cloudformation_stack" "wildcard" {
-  name = "${local.cluster}-ingress-dns"
+resource "aws_route53_record" "wildcard" {
+  zone_id = aws_route53_zone.this.zone_id
+  name    = "*.${local.domain}"
+  type    = "A"
 
-  template_body = jsonencode({
-    Resources = {
-      Wildcard = {
-        Type = "AWS::Route53::RecordSet"
-        Properties = {
-          HostedZoneId = aws_route53_zone.this.zone_id
-          Name         = "*.${local.domain}"
-          Type         = "A"
-          AliasTarget = {
-            DNSName              = aws_lb.this.dns_name
-            HostedZoneId         = aws_lb.this.zone_id
-            EvaluateTargetHealth = true
-          }
-        }
-      }
-    }
-  })
-
-  tags = local.tags
+  alias {
+    name                   = aws_lb.this.dns_name
+    zone_id                = aws_lb.this.zone_id
+    evaluate_target_health = true
+  }
 }
 
 # ── How something reaches the cluster ──

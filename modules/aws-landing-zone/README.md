@@ -37,10 +37,10 @@ container with an IAM authentication webhook, so `aws eks get-token` and `kubect
 What is metadata only: NAT gateways route nothing, the load balancer has no data plane, and Route53 names
 do not resolve.
 
-The wildcard record is made by a CloudFormation stack rather than as an `aws_route53_record`. Route 53 returns
-the `*` of a wildcard as `\052`, and the provider looks the record up by that form once it has made it. Floci 2.x
-returns `*`, so the provider reads the new record as missing and the apply fails. The stack makes the same record
-on AWS and on Floci. This goes back to `aws_route53_record` once Floci returns `\052`. A run therefore proves the recipe applies, the state is kept, and the outputs are produced
+Floci 2.x lists the wildcard record as `*.{domain}.` where Route 53 lists `\052.{domain}.`, and the provider
+looks the record up by Route 53's form once it has made it, so an apply against Floci 2.x reads the new record as
+missing and fails. That is the emulator's to fix: the module keeps what a real account needs, and 3.0.0's
+CloudFormation stack for the record is gone again in 3.1.0. A run therefore proves the recipe applies, the state is kept, and the outputs are produced
 — not that traffic flows. The difference is confined to the emulator: no variable here mentions it, because
 the provider and the endpoints are the root module's business, which is what lets this run unchanged
 against a real account.
