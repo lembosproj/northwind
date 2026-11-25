@@ -27,8 +27,9 @@ locals {
   }
   size = local.sizing[var.stage]
 
+  # Azure refuses a / in a tag's name, so these are lembos-…, where the AWS modules' are lembos.dev/….
   tags = merge(var.tags, {
-    "lembos.dev/environment" = var.name
+    "lembos-environment" = var.name
   })
 }
 

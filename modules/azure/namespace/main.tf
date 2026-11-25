@@ -147,7 +147,8 @@ resource "azurerm_user_assigned_identity" "workload" {
   name                = local.identity_name
   location            = data.azurerm_resource_group.this.location
   resource_group_name = var.resource_group
-  tags                = merge(var.tags, { "lembos.dev/slot" = var.name })
+  # Azure refuses a / in a tag's name; the Kubernetes labels above keep lembos.dev/slot.
+  tags = merge(var.tags, { "lembos-slot" = var.name })
 }
 
 resource "azurerm_federated_identity_credential" "workload" {

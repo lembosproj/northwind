@@ -73,7 +73,7 @@ Every package started again at 1.0.0 in this layout; the seed pins each at the v
 | `modules/aws/namespace` | 1.0.0 |
 | `modules/aws/postgres` | 1.0.0 |
 | `modules/aws/redis` | 1.0.0 |
-| `modules/azure/landing-zone` | 1.0.1 |
-| `modules/azure/namespace` | 1.0.0 |
-| `modules/azure/postgres` | 1.0.0 |
-| `modules/azure/redis` | 1.0.0 |
+| `modules/azure/landing-zone` | 1.0.2 |
+| `modules/azure/namespace` | 1.0.1 |
+| `modules/azure/postgres` | 1.0.1 |
+| `modules/azure/redis` | 1.0.1 |
