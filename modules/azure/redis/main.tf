@@ -13,10 +13,14 @@ locals {
 
   # Managed Redis listens on one port, over TLS.
   port = 10000
+
+  # Azure caps a Managed Redis name and its region's display name at 62 characters together, and a region's name runs
+  # to some 30, so the placement's name is cut shorter here than elsewhere, keeping a hash so it stays unique.
+  redis_name = length(local.placement) <= 30 ? local.placement : "${trimsuffix(substr(local.placement, 0, 21), "-")}-${substr(md5(local.placement), 0, 8)}"
 }
 
 resource "azurerm_managed_redis" "this" {
-  name                      = local.identifier
+  name                      = local.redis_name
   location                  = data.azurerm_resource_group.environment.location
   resource_group_name       = data.azurerm_resource_group.environment.name
   sku_name                  = local.size.sku

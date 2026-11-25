@@ -12,7 +12,7 @@ same inputs and give the same outputs, so a spec reads a resource the same way w
 | `azure/landing-zone` | `azure/landing-zone` | 1.0.3 | Environment |
 | `azure/namespace` | the slot level of `azure/landing-zone` | 1.0.1 | Environment |
 | `azure/postgres` | `azure/postgres` | 1.0.1 | Resource |
-| `azure/redis` | `azure/redis` | 1.1.0 | Resource |
+| `azure/redis` | `azure/redis` | 1.1.1 | Resource |
 
 Each version is an OpenTofu module package in the registry —
 `ghcr.io/lembosproj/northwind/modules/{cloud}/{module}:{version}`, one zip layer holding the module — and the seeded
