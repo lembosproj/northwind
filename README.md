@@ -63,12 +63,12 @@ Building one here would need an owner group above both, or a second account.
 
 ## The versions the seed expects
 
-Every package starts again at 1.0.0 in this layout, and the seed pins each at that version:
+Every package started again at 1.0.0 in this layout; the seed pins each at the version below:
 
 | Package | Version |
 | --- | --- |
-| `charts/service` | 1.0.0 |
-| `charts/worker` | 1.0.0 |
+| `charts/service` | 1.0.1 |
+| `charts/worker` | 1.0.1 |
 | `modules/aws/landing-zone` | 1.0.0 |
 | `modules/aws/namespace` | 1.0.0 |
 | `modules/aws/postgres` | 1.0.0 |

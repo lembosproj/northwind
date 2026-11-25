@@ -53,6 +53,11 @@ spec:
               value: {{ .Values.lembos.environment | quote }}
             - name: LEMBOS_SLOT
               value: {{ .Values.lembos.slot | quote }}
+            {{- if include "worker.keyVaultSecrets" . }}
+            {{- /* Where the bindings' URLs are read from when the copied Secret is not there yet (Northwind.Runtime). */}}
+            - name: SECRETS_DIRECTORY
+              value: /mnt/key-vault
+            {{- end }}
             {{- range $key, $value := .Values.config }}
             - name: {{ $key }}
               value: {{ $value | quote }}

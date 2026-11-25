@@ -25,6 +25,9 @@ public static class ResourceBindings
     private const string UrlSuffix = "_URL";
     private const string SecretRefSuffix = "_SECRET_REF";
 
+    /// <summary>Where the chart mounts the slot's secrets, when the slot keeps them in a vault (the charts' identity).</summary>
+    public const string SecretsDirectory = "SECRETS_DIRECTORY";
+
     /// <summary>
     /// Every binding the environment carries, from any of the three variables a binding renders.
     /// </summary>
@@ -63,9 +66,33 @@ public static class ResourceBindings
             .Select(handle => new ResourceBinding(
                 handle,
                 endpoints.GetValueOrDefault(handle),
-                urls.GetValueOrDefault(handle),
+                urls.GetValueOrDefault(handle) ?? (refs.GetValueOrDefault(handle) is { } secretRef ? MountedUrl(secretRef) : null),
                 refs.GetValueOrDefault(handle)))
             .ToList();
+    }
+
+    /// <summary>The URL a vault's provider wrote into the mounted volume for a binding's secret, if it did.</summary>
+    /// <remarks>
+    /// Where a slot keeps its secrets in a vault, the provider copies each one into the Secret <c>&lt;HANDLE&gt;_URL</c> is
+    /// read from only while a pod mounts it. Environment variables are fixed when the container is made, so a pod that
+    /// started before the copy existed would run without its URL until it restarted. The mounted file is there from the
+    /// first start. It is named as the charts name the secret: the path, with dashes for its slashes, in lower case.
+    /// </remarks>
+    private static string? MountedUrl(string secretRef)
+    {
+        if (System.Environment.GetEnvironmentVariable(SecretsDirectory) is not { Length: > 0 } directory)
+            return null;
+
+        var path = Path.Combine(directory, secretRef.Replace('/', '-').ToLowerInvariant());
+
+        try
+        {
+            return File.Exists(path) && File.ReadAllText(path).Trim() is { Length: > 0 } url ? url : null;
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
     }
 
     /// <summary>

@@ -48,7 +48,7 @@ what each dependency published where the component runs. A workload never receiv
 | --- | --- |
 | `<HANDLE>_ENDPOINT` | where a resource it depends on is reached, `host:port` |
 | `<HANDLE>_SECRET_REF` | the path its credential lives at, to resolve at start-up |
-| `<HANDLE>_URL` | the connection string, from a Kubernetes secret — only where a provisioner placed one |
+| `<HANDLE>_URL` | the connection string, from a Kubernetes secret — only where a provisioner placed one; where the slot keeps it in a vault, read from the file the chart mounts (`SECRETS_DIRECTORY`) when the variable is empty |
 | `UPSTREAM_<NAME>` | a component it calls, as a URL |
 
 `/readyz` fails while a binding says nowhere to connect — wired, not reachable. Whether each dependency answers now

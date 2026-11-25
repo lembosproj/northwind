@@ -7,8 +7,8 @@ Azure is what the slot gives them (`identity` below), not the chart. Where they 
 
 | Chart | Blueprint | Version | Type |
 | --- | --- | --- | --- |
-| `service` | `platform/helm-service` | 1.0.0 | Component |
-| `worker` | `platform/helm-worker` | 1.0.0 | Component |
+| `service` | `platform/helm-service` | 1.0.1 | Component |
+| `worker` | `platform/helm-worker` | 1.0.1 | Component |
 
 The chart is named for what it deploys and the blueprint for how: `helm-` says which provisioner a blueprint uses,
 which is the catalog's question, and is noise in a registry that only holds charts.
@@ -70,7 +70,7 @@ identity behind it: the local cluster and the emulators.
 | --- | --- |
 | `identity.serviceAccount` | Runs as the slot's service account (`workload`, which each namespace module makes) |
 | `identity.azure.clientId`, `tenantId` | Signs the pods in through Azure workload identity, as the slot's identity |
-| `identity.azure.keyVault` | With `clientId`: a `SecretProviderClass` copies each binding's secret from the vault into the Secret `<HANDLE>_URL` is read from, through AKS's Key Vault provider |
+| `identity.azure.keyVault` | With `clientId`: a `SecretProviderClass` copies each binding's secret from the vault into the Secret `<HANDLE>_URL` is read from, through AKS's Key Vault provider. The pods mount it at `SECRETS_DIRECTORY`, where the app reads a URL the Secret does not have yet |
 
 So on Azure a workload connects with the same variables as anywhere else, and its connection string never passes
 through the platform or the release's values.
@@ -83,7 +83,7 @@ manifest digest the push produced:
 ```text
 location   oci://ghcr.io/lembosproj/northwind/charts
 package    service
-reference  1.0.0
+reference  1.0.1
 digest     sha256:…
 ```
 
@@ -99,5 +99,5 @@ its tag says — and pushes it with Helm 3.16.2, the tool version the blueprints
 digest the seed pins.
 
 ```shell
-git tag charts/service/v1.0.0 && git push origin charts/service/v1.0.0
+git tag charts/service/v1.0.1 && git push origin charts/service/v1.0.1
 ```
