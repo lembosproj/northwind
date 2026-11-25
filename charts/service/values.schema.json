@@ -1,7 +1,76 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
+  "required": ["lembos", "image"],
   "properties": {
+    "lembos": {
+      "description": "Who this is.",
+      "type": "object",
+      "properties": {
+        "component": {
+          "type": "string",
+          "description": "The component's qualified name, e.g. ordering/order-api."
+        },
+        "environment": {
+          "type": "string",
+          "description": "The environment's name, e.g. northwind/prod."
+        },
+        "slot": {
+          "type": "string",
+          "description": "The slot's name, e.g. eu-west."
+        }
+      },
+      "additionalProperties": false
+    },
+    "image": {
+      "description": "The build to run, which the release names, and how it is pulled.",
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        },
+        "digest": {
+          "type": "string",
+          "description": "A pinned digest. Set, it wins over the tag, which can move."
+        },
+        "pullPolicy": {
+          "enum": ["Always", "IfNotPresent", "Never"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "replicas": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "ports": {
+      "description": "What the service listens on. A public port is given an ingress.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "protocol": {
+            "type": "string"
+          },
+          "isPublic": {
+            "type": "boolean"
+          }
+        },
+        "required": ["name", "port"],
+        "additionalProperties": false
+      }
+    },
     "resourceBindings": {
       "description": "What it depends on, by handle: where each resource is, how to connect, and the secret its credential is in.",
       "type": "object",
@@ -35,6 +104,174 @@
         "type": "string"
       }
     },
+    "config": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Settings projected as environment variables."
+    },
+    "sizeClass": {
+      "description": "Drives requests and limits, by the sizes table.",
+      "enum": ["small", "medium", "large"]
+    },
+    "sizes": {
+      "description": "What each size class means. The platform team owns this table.",
+      "type": "object",
+      "properties": {
+        "small": {
+          "type": "object",
+          "properties": {
+            "requests": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "limits": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "medium": {
+          "type": "object",
+          "properties": {
+            "requests": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "limits": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "large": {
+          "type": "object",
+          "properties": {
+            "requests": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "limits": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "autoscaling": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "minReplicas": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxReplicas": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "targetCPUUtilizationPercentage": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "additionalProperties": false
+    },
+    "ingress": {
+      "description": "Given to the first public port. The class and host default to the environment's.",
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "className": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "serviceAccount": {
+      "description": "The chart's own service account, where the slot gives no identity.",
+      "type": "object",
+      "properties": {
+        "create": {
+          "type": "boolean"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "identity": {
       "description": "Who the pods sign in as, where the slot gives them an identity. Empty, they sign in as nothing.",
       "type": "object",
@@ -63,6 +300,27 @@
         }
       },
       "additionalProperties": false
+    },
+    "podAnnotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "nodeSelector": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "tolerations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "affinity": {
+      "type": "object"
     }
   }
 }

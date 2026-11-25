@@ -7,8 +7,8 @@ Azure is what the slot gives them (`identity` below), not the chart. Where they 
 
 | Chart | Blueprint | Version | Type |
 | --- | --- | --- | --- |
-| `service` | `kubernetes/service` | 1.0.2 | Component |
-| `worker` | `kubernetes/worker` | 1.0.2 | Component |
+| `service` | `kubernetes/service` | 1.0.3 | Component |
+| `worker` | `kubernetes/worker` | 1.0.3 | Component |
 
 The chart is named for what it deploys and the blueprint for how: `helm-` says which provisioner a blueprint uses,
 which is the catalog's question, and is noise in a registry that only holds charts.
@@ -36,7 +36,8 @@ ports:                  # the spec's
   - { name: http, port: 8080, protocol: http, isPublic: true }
 resourceBindings:       # one per resource the component depends on, keyed by a handle
   ordersDb:
-    endpoint: northwind-prod-eu-west-ordering-orders-db.local:5432
+    endpoint: northwind-prod-eu-west-ordering-orders-db.local
+    port: 5432
     secretRef: northwind/prod/eu-west/ordering/orders-db
 upstreams:              # one per component it calls: a host (called over HTTP on 80) or a URL
   orderApi: ordering-order-api-eu-west.northwind-prod-eu-west.svc.cluster.local
@@ -47,15 +48,20 @@ sizeClass: small        # drives requests/limits; defaults to the destination's 
 `resourceBindings` carries a **secret reference, never a secret value** — the path a workload resolves at
 start-up. A chart that took a password as a value would put it in the release's stored manifest.
 
-Both are filled from what a component **depends on**: a spec answers each binding from its resource's `endpoint` and
-`secret_ref` outputs, and each upstream from the called component's `clusterEndpoint` — the platform reads them where
+Both are filled from what a component **depends on**: a spec answers each binding from its resource's `endpoint`,
+`port` and `secret_ref` outputs, and each upstream from the called component's `clusterEndpoint` — the platform reads them where
 the component runs. The charts render them the same way:
 
 | Value | Environment variable |
 | --- | --- |
-| `resourceBindings.<handle>.endpoint` | `<HANDLE>_ENDPOINT` |
+| `resourceBindings.<handle>.endpoint` | `<HANDLE>_ENDPOINT`, as `host:port` where the endpoint is a bare host and a port is given |
+| `resourceBindings.<handle>.port` | `<HANDLE>_PORT` |
 | `resourceBindings.<handle>.secretRef` | `<HANDLE>_SECRET_REF`, and `<HANDLE>_URL` from the secret of that name, when present |
 | `upstreams.<name>` | `UPSTREAM_<NAME>` — a host is prefixed `http://` |
+
+`values.schema.json` declares every value, with its type: it is what a blueprint version imports as its inputs, so
+what the schema leaves out would be guessed from `values.yaml`, and an enum such as `sizeClass` would be lost. Helm
+checks every render against it, so a value outside it is refused before anything is applied.
 
 A handle and a name are camelCase (`ordersDb`, `orderApi`) and become SCREAMING_SNAKE (`ORDERS_DB`, `ORDER_API`).
 A service's Service answers callers on port 80, at its first public port, so a caller needs only the host.
