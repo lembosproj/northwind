@@ -9,10 +9,10 @@ same inputs and give the same outputs, so a spec reads a resource the same way w
 | `aws/namespace` | the slot level of `aws/landing-zone` | 1.0.0 | Environment |
 | `aws/postgres` | `aws/postgres` | 1.0.0 | Resource |
 | `aws/redis` | `aws/redis` | 1.0.0 | Resource |
-| `azure/landing-zone` | `azure/landing-zone` | 1.0.5 | Environment |
-| `azure/namespace` | the slot level of `azure/landing-zone` | 1.0.2 | Environment |
-| `azure/postgres` | `azure/postgres` | 1.0.1 | Resource |
-| `azure/redis` | `azure/redis` | 1.1.1 | Resource |
+| `azure/landing-zone` | `azure/landing-zone` | 1.0.6 | Environment |
+| `azure/namespace` | the slot level of `azure/landing-zone` | 1.0.3 | Environment |
+| `azure/postgres` | `azure/postgres` | 1.0.2 | Resource |
+| `azure/redis` | `azure/redis` | 1.1.2 | Resource |
 
 Each version is an OpenTofu module package in the registry —
 `ghcr.io/lembosproj/northwind/modules/{cloud}/{module}:{version}`, one zip layer holding the module — and the seeded
@@ -56,6 +56,13 @@ the five. `aws/postgres` takes one more:
 When it is true, destroying or replacing the instance first takes a snapshot named `{identifier}-final`. The
 name is the same each time for one placement, so delete that snapshot before the placement is destroyed with
 a snapshot again.
+
+Every **Azure** module, its two landing zone levels included, takes one more, because `azurerm` has no tags for every
+resource and so cannot carry the instance's marks the way the AWS provider's `default_tags` do:
+
+| Variable | Answered by |
+| --- | --- |
+| `instance_marks` | the instance's marks — `instance.marks`: `lembos-instance` and `lembos-instance-type` — merged into every resource's tags |
 
 Every resource module returns the same four outputs:
 

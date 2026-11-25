@@ -34,7 +34,7 @@ locals {
   )
 
   # Azure refuses a / in a tag's name, so these are lembos-…, where the AWS modules' are lembos.dev/….
-  tags = merge(var.tags, {
+  tags = merge(var.tags, var.instance_marks, {
     "lembos-environment" = var.name
   })
 }

@@ -16,7 +16,7 @@ locals {
   identifier = length(local.placement) <= 50 ? local.placement : "${trimsuffix(substr(local.placement, 0, 41), "-")}-${substr(md5(local.placement), 0, 8)}"
 
   # Azure refuses a / in a tag's name, so these are lembos-…, where the AWS modules' are lembos.dev/….
-  tags = merge(var.tags, {
+  tags = merge(var.tags, var.instance_marks, {
     "lembos-resource"    = var.name
     "lembos-environment" = var.environment
     "lembos-slot"        = var.slot

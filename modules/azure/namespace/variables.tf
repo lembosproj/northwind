@@ -75,3 +75,12 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "instance_marks" {
+  description = <<-EOT
+    The instance's marks, lembos-instance and lembos-instance-type, merged into the tags of everything this makes.
+    The platform hands them over as instance.marks, because azurerm has no tags for every resource.
+  EOT
+  type        = map(string)
+  default     = {}
+}
