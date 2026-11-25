@@ -25,7 +25,11 @@ locals {
     staging = { vm_size = "Standard_D2s_v5", node_count = 2 }
     prod    = { vm_size = "Standard_D4s_v5", node_count = 3 }
   }
-  size = merge(local.sizing[var.stage], var.node_vm_size == null ? {} : { vm_size = var.node_vm_size })
+  size = merge(
+    local.sizing[var.stage],
+    var.node_vm_size == null ? {} : { vm_size = var.node_vm_size },
+    var.node_count == null ? {} : { node_count = var.node_count },
+  )
 
   # Azure refuses a / in a tag's name, so these are lembos-…, where the AWS modules' are lembos.dev/….
   tags = merge(var.tags, {
@@ -100,6 +104,10 @@ resource "azurerm_kubernetes_cluster" "this" {
     vm_size        = local.size.vm_size
     node_count     = local.size.node_count
     vnet_subnet_id = azurerm_subnet.nodes.id
+
+    # A new VM size moves the nodes to a pool of this name and back, rather than replacing the whole cluster and
+    # everything the slots built in it.
+    temporary_name_for_rotation = "rotation"
   }
 
   # Node auto-provisioning off: the node pool above is the cluster's size.

@@ -27,6 +27,20 @@ variable "node_vm_size" {
   default     = null
 }
 
+variable "node_count" {
+  description = <<-EOT
+    How many nodes, instead of the stage's (dev and test 1, staging 2, prod 3). Null keeps the stage's. One 2-vCPU
+    node cannot hold much more than AKS's own pods: its app routing alone asks for a whole vCPU.
+  EOT
+  type        = number
+  default     = null
+
+  validation {
+    condition     = var.node_count == null || try(var.node_count >= 1, false)
+    error_message = "node_count must be 1 or more, or null for the stage's."
+  }
+}
+
 variable "location" {
   description = <<-EOT
     The Azure region, e.g. swedencentral. An input, unlike the AWS landing zone's region: the azurerm provider has no
