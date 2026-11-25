@@ -17,6 +17,16 @@ variable "stage" {
   }
 }
 
+variable "node_vm_size" {
+  description = <<-EOT
+    The nodes' VM size, instead of the one the stage gives (dev and test Standard_B2s, staging Standard_D2s_v5, prod
+    Standard_D4s_v5). Null keeps the stage's. For a region or subscription that does not offer the stage's size: a
+    trial in germanywestcentral, for one, offers no B-series.
+  EOT
+  type        = string
+  default     = null
+}
+
 variable "location" {
   description = <<-EOT
     The Azure region, e.g. swedencentral. An input, unlike the AWS landing zone's region: the azurerm provider has no
