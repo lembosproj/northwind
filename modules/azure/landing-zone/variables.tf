@@ -65,10 +65,10 @@ variable "workload_identity_enabled" {
 variable "entra_auth_enabled" {
   description = <<-EOT
     Whether the cluster signs people and the platform in with Entra and authorises them with Azure RBAC, so the platform
-    reaches a slot by exchanging its subscription credential for a cluster token, as it does on EKS.
+    reaches a slot by exchanging its subscription credential for an Entra token to the cluster, as it does on EKS.
 
     True on every real subscription. False on the local emulator, whose k3s cluster accepts no Entra token: the platform
-    then reaches the cluster with the kubeconfig kept in this environment's vault.
+    then asks Resource Manager for the cluster's admin credential each time it reaches the cluster.
   EOT
   type        = bool
   default     = true

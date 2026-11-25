@@ -180,13 +180,3 @@ resource "azurerm_role_assignment" "deployer_secrets" {
   role_definition_name = "Key Vault Secrets Officer"
   principal_id         = data.azurerm_client_config.current.object_id
 }
-
-# How the platform reaches the cluster where it cannot exchange a token: the local emulator (entra_auth_enabled false).
-# The value is the cluster's own admin credential, so it is kept in the vault and only its name leaves this module.
-resource "azurerm_key_vault_secret" "kubeconfig" {
-  name         = "kubeconfig"
-  key_vault_id = azurerm_key_vault.this.id
-  value        = var.entra_auth_enabled ? azurerm_kubernetes_cluster.this.kube_admin_config_raw : azurerm_kubernetes_cluster.this.kube_config_raw
-
-  depends_on = [azurerm_role_assignment.deployer_secrets]
-}

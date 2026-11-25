@@ -5,14 +5,14 @@ same inputs and give the same outputs, so a spec reads a resource the same way w
 
 | Module | Blueprint | Version | Type |
 | --- | --- | --- | --- |
-| `aws/landing-zone` | `platform/aws-landing-zone` | 1.0.0 | Environment |
-| `aws/namespace` | the slot level of `platform/aws-landing-zone` | 1.0.0 | Environment |
-| `aws/postgres` | `platform/aws-postgres` | 1.0.0 | Resource |
-| `aws/redis` | `platform/aws-redis` | 1.0.0 | Resource |
-| `azure/landing-zone` | `platform/azure-landing-zone` | 1.0.0 | Environment |
-| `azure/namespace` | the slot level of `platform/azure-landing-zone` | 1.0.0 | Environment |
-| `azure/postgres` | `platform/azure-postgres` | 1.0.0 | Resource |
-| `azure/redis` | `platform/azure-redis` | 1.0.0 | Resource |
+| `aws/landing-zone` | `aws/landing-zone` | 1.0.0 | Environment |
+| `aws/namespace` | the slot level of `aws/landing-zone` | 1.0.0 | Environment |
+| `aws/postgres` | `aws/postgres` | 1.0.0 | Resource |
+| `aws/redis` | `aws/redis` | 1.0.0 | Resource |
+| `azure/landing-zone` | `azure/landing-zone` | 1.0.1 | Environment |
+| `azure/namespace` | the slot level of `azure/landing-zone` | 1.0.0 | Environment |
+| `azure/postgres` | `azure/postgres` | 1.0.0 | Resource |
+| `azure/redis` | `azure/redis` | 1.0.0 | Resource |
 
 Each version is an OpenTofu module package in the registry —
 `ghcr.io/lembosproj/northwind/modules/{cloud}/{module}:{version}`, one zip layer holding the module — and the seeded

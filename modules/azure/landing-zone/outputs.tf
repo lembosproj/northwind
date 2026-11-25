@@ -16,9 +16,12 @@ output "port" {
   value       = null
 }
 
+# Nothing is kept: the platform reaches the cluster through the subscription's identity, asking each time for an Entra
+# token or, without Entra sign-in, for the cluster's admin credential. A stored kubeconfig would be a credential nobody
+# rotates.
 output "secret_ref" {
-  description = "The vault secret holding the cluster's kubeconfig. Never the kubeconfig."
-  value       = "${azurerm_key_vault.this.name}/${azurerm_key_vault_secret.kubeconfig.name}"
+  description = "Null: no credential to the cluster is stored."
+  value       = null
 }
 
 output "region" {
@@ -54,11 +57,6 @@ output "oidc_issuer" {
 
 output "key_vault_name" {
   value = azurerm_key_vault.this.name
-}
-
-output "kubeconfig_secret_ref" {
-  description = "The vault secret holding the kubeconfig, for a target that cannot exchange a token."
-  value       = "${azurerm_key_vault.this.name}/${azurerm_key_vault_secret.kubeconfig.name}"
 }
 
 output "outbound_ip" {

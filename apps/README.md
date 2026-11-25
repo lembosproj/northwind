@@ -6,8 +6,8 @@ component blueprints:
 
 | App | Blueprint | Published as |
 | --- | --- | --- |
-| `Northwind.WebService` | `platform/helm-service` | `apps/order-api`, `apps/checkout-bff`, `apps/cart-service` |
-| `Northwind.Worker` | `platform/helm-worker` | `apps/order-event-publisher` |
+| `Northwind.WebService` | `kubernetes/service` | `apps/order-api`, `apps/checkout-bff`, `apps/cart-service` |
+| `Northwind.Worker` | `kubernetes/worker` | `apps/order-event-publisher` |
 
 **A repository per component, and none per archetype.** A platform records an artifact as its bytes in one
 repository, so two components cannot share one image. Each archetype is built once and that one build is pushed

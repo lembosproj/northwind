@@ -18,7 +18,7 @@ resource group and the cluster `northwind-azure`.
 | Cluster | AKS with Azure CNI powered by Cilium, one node pool sized by stage, and AKS's own ingress controller (web app routing) |
 | Identity | The cluster's managed identity; the OIDC issuer and workload identity for the slots' identities |
 | Secrets | A Key Vault authorised by Azure RBAC, and the Key Vault provider that copies a secret into a slot |
-| Access | The cluster's kubeconfig in the vault, and Azure RBAC on the cluster for whoever builds it |
+| Access | Azure RBAC on the cluster for whoever builds it; no kubeconfig is stored |
 
 ## Why it takes its region
 
@@ -40,9 +40,9 @@ cluster exists:
 
 - `workload_identity_enabled = false`: its cluster has no OIDC issuer and no Key Vault provider, so a slot makes no
   identity, and a component runs as the slot's service account and signs in as nothing.
-- `entra_auth_enabled = false`: its cluster takes no Entra token, so the platform reaches it with the kubeconfig in
-  the vault (`kubeconfig_secret_ref`). On a real subscription the platform exchanges its subscription credential for a
-  cluster token instead, and the kubeconfig is only the administrator's way in.
+- `entra_auth_enabled = false`: its cluster takes no Entra token, so the platform asks Resource Manager for the
+  cluster's admin credential each time it reaches it (`AksAdminCredentialExchange`). On a real subscription the platform
+  asks Entra for a token to the cluster instead (`AksEntraTokenExchange`). Neither is stored.
 
 Network security rules, routing and role assignments are stored and not enforced there, so a run proves the recipe
 applies, the state is kept and the outputs are produced, not that traffic is held to the firewall.

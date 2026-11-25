@@ -7,8 +7,8 @@ Azure is what the slot gives them (`identity` below), not the chart. Where they 
 
 | Chart | Blueprint | Version | Type |
 | --- | --- | --- | --- |
-| `service` | `platform/helm-service` | 1.0.1 | Component |
-| `worker` | `platform/helm-worker` | 1.0.1 | Component |
+| `service` | `kubernetes/service` | 1.0.1 | Component |
+| `worker` | `kubernetes/worker` | 1.0.1 | Component |
 
 The chart is named for what it deploys and the blueprint for how: `helm-` says which provisioner a blueprint uses,
 which is the catalog's question, and is noise in a registry that only holds charts.
