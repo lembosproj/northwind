@@ -67,10 +67,11 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 
 {{- /*
   What the workload depends on, as environment variables — where each thing is and where its credential lives,
-  never the credential in a value. A resource binding names its endpoint, a URL where the resource publishes one
-  that carries no secret, and its secret's path. The credential is read from that secret by key — the URL where a
-  provisioner placed a whole one, else the username and password an operator writes (CloudNativePG's app secret) —
-  each optional, so a pod still starts where a key is absent. An upstream is a component this one calls: a bare
+  never the credential in a value. A resource binding names its endpoint (joined to its port where the module
+  publishes the two apart), a URL where the resource publishes one that carries no secret, and its secret's path.
+  The credential is read from that secret by key — the URL where a provisioner placed a whole one, else the username
+  and password an operator writes (CloudNativePG's app secret) — each optional, so a pod still starts where a key is
+  absent. An upstream is a component this one calls: a bare
   host is called over HTTP, on the port its Service answers every caller on.
 */}}
 {{- define "service.dependencyEnv" -}}
@@ -78,6 +79,14 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- $name := $handle | snakecase | upper }}
 {{- with $binding.endpoint }}
 - name: {{ $name }}_ENDPOINT
+  {{- if and $binding.port (not (contains ":" .)) }}
+  value: {{ printf "%s:%v" . $binding.port | quote }}
+  {{- else }}
+  value: {{ . | quote }}
+  {{- end }}
+{{- end }}
+{{- with $binding.port }}
+- name: {{ $name }}_PORT
   value: {{ . | quote }}
 {{- end }}
 {{- with $binding.url }}

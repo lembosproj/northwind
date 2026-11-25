@@ -27,12 +27,14 @@ ports:
     isPublic: true
 
 # One entry per resource the component depends on, keyed by a handle: where it is, and where its credential lives —
-# never the credential. Rendered as <HANDLE>_ENDPOINT and <HANDLE>_SECRET_REF; <HANDLE>_URL from url where the
+# never the credential. Rendered as <HANDLE>_ENDPOINT (host:port, where a bare host comes with a port, as the
+# resource modules publish them apart), <HANDLE>_PORT and <HANDLE>_SECRET_REF; <HANDLE>_URL from url where the
 # resource publishes one with no secret in it, else from a Kubernetes secret named after the path where a provisioner
 # placed one; and <HANDLE>_USERNAME and <HANDLE>_PASSWORD from that secret's keys, where it has them.
 resourceBindings: {}
 #  ordersDb:
-#    endpoint: northwind-sandbox-default-ordering-orders-db.local:5432
+#    endpoint: northwind-sandbox-default-ordering-orders-db.local
+#    port: 5432
 #    url: postgresql://app@northwind-sandbox-default-ordering-orders-db.local:5432/orders
 #    secretRef: northwind/sandbox/default/ordering/orders-db
 

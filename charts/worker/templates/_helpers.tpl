@@ -41,15 +41,23 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{/* Shared by every chart: a binding names where the credential is, never what it is. */}}
 {{- /*
   What the workload depends on, as environment variables — where each thing is and where its credential lives,
-  never the credential. The same contract as service, so a component moving between the two keeps its
-  wiring: a binding's endpoint and secret path, its URL from a Kubernetes secret only where one was placed, and each
-  upstream it calls.
+  never the credential. The same contract as service, so a component moving between the two keeps its wiring: a
+  binding's endpoint, joined to its port, and secret path, its URL from a Kubernetes secret only where one was
+  placed, and each upstream it calls.
 */}}
 {{- define "worker.dependencyEnv" -}}
 {{- range $handle, $binding := .Values.resourceBindings }}
 {{- $name := $handle | snakecase | upper }}
 {{- with $binding.endpoint }}
 - name: {{ $name }}_ENDPOINT
+  {{- if and $binding.port (not (contains ":" .)) }}
+  value: {{ printf "%s:%v" . $binding.port | quote }}
+  {{- else }}
+  value: {{ . | quote }}
+  {{- end }}
+{{- end }}
+{{- with $binding.port }}
+- name: {{ $name }}_PORT
   value: {{ . | quote }}
 {{- end }}
 {{- with $binding.secretRef }}

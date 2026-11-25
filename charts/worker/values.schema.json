@@ -10,7 +10,11 @@
         "properties": {
           "endpoint": {
             "type": "string",
-            "description": "Where it is: host and port, and a database's name."
+            "description": "Where it is: a host, or host and port, and a database's name."
+          },
+          "port": {
+            "type": ["integer", "null"],
+            "description": "The port, where the endpoint is a bare host. The two are joined as host:port."
           },
           "url": {
             "type": "string",

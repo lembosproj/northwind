@@ -2,8 +2,8 @@ apiVersion: v2
 name: worker
 description: A queue or stream consumer with no ingress and a scale-to-zero floor.
 type: application
-version: 1.0.1
-appVersion: "1.0.1"
+version: 1.0.2
+appVersion: "1.0.2"
 kubeVersion: ">=1.28.0-0"
 keywords: [lembos, blueprint, component, worker]
 annotations:

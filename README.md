@@ -67,8 +67,8 @@ Every package started again at 1.0.0 in this layout; the seed pins each at the v
 
 | Package | Version |
 | --- | --- |
-| `charts/service` | 1.0.1 |
-| `charts/worker` | 1.0.1 |
+| `charts/service` | 1.0.2 |
+| `charts/worker` | 1.0.2 |
 | `modules/aws/landing-zone` | 1.0.0 |
 | `modules/aws/namespace` | 1.0.0 |
 | `modules/aws/postgres` | 1.0.0 |
