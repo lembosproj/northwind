@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "service.fullname" . }}
+  labels: {{- include "service.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicas }}
+  {{- end }}
+  selector:
+    matchLabels: {{- include "service.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "service.labels" . | nindent 8 }}
+        {{- if .Values.identity.azure.clientId }}
+        azure.workload.identity/use: "true"
+        {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations: {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with include "service.serviceAccountName" . }}
+      serviceAccountName: {{ . }}
+      {{- end }}
+      {{- if include "service.keyVaultSecrets" . }}
+      volumes:
+        - name: key-vault
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ include "service.fullname" . }}
+      {{- end }}
+      containers:
+        - name: app
+          image: {{ include "service.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            {{- range .Values.ports }}
+            - name: {{ .name }}
+              containerPort: {{ .port }}
+              protocol: TCP
+            {{- end }}
+          env:
+            - name: LEMBOS_COMPONENT
+              value: {{ .Values.lembos.component | quote }}
+            - name: LEMBOS_ENVIRONMENT
+              value: {{ .Values.lembos.environment | quote }}
+            - name: LEMBOS_SLOT
+              value: {{ .Values.lembos.slot | quote }}
+            {{- range $key, $value := .Values.config }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- include "service.dependencyEnv" . | trim | nindent 12 }}
+          resources: {{- include "service.resources" . | nindent 12 }}
+          {{- if include "service.keyVaultSecrets" . }}
+          volumeMounts:
+            - name: key-vault
+              mountPath: /mnt/key-vault
+              readOnly: true
+          {{- end }}
+          {{- $public := include "service.publicPort" . }}
+          {{- if $public }}
+          livenessProbe:
+            httpGet: { path: /healthz, port: {{ $public }} }
+            initialDelaySeconds: 10
+          readinessProbe:
+            httpGet: { path: /readyz, port: {{ $public }} }
+            initialDelaySeconds: 3
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity: {{- toYaml . | nindent 8 }}
+      {{- end }}

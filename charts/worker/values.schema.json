@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "resourceBindings": {
+      "description": "What it depends on, by handle: where each resource is, how to connect, and the secret its credential is in.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "description": "Where it is: host and port, and a database's name."
+          },
+          "url": {
+            "type": "string",
+            "description": "How to connect, where the resource publishes a URL with no secret in it."
+          },
+          "secretRef": {
+            "type": "string",
+            "description": "The secret holding the credential. Never the credential."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "upstreams": {
+      "description": "The components it calls, by name: each one's host, or a whole URL.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "identity": {
+      "description": "Who the pods sign in as, where the slot gives them an identity. Empty, they sign in as nothing.",
+      "type": "object",
+      "properties": {
+        "serviceAccount": {
+          "type": "string",
+          "description": "The slot's service account to run as, in place of the chart's own."
+        },
+        "azure": {
+          "type": "object",
+          "properties": {
+            "clientId": {
+              "type": "string",
+              "description": "The slot identity's client id. Set, the pods sign in through Azure workload identity."
+            },
+            "tenantId": {
+              "type": "string",
+              "description": "The slot identity's tenant."
+            },
+            "keyVault": {
+              "type": "string",
+              "description": "The vault the slot's resources keep their secrets in. Set with clientId, each binding's secret is copied into the cluster."
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -6,7 +6,7 @@ component blueprints:
 
 | App | Blueprint | Published as |
 | --- | --- | --- |
-| `Northwind.WebService` | `platform/helm-web-service` | `apps/order-api`, `apps/checkout-bff`, `apps/cart-service` |
+| `Northwind.WebService` | `platform/helm-service` | `apps/order-api`, `apps/checkout-bff`, `apps/cart-service` |
 | `Northwind.Worker` | `platform/helm-worker` | `apps/order-event-publisher` |
 
 **A repository per component, and none per archetype.** A platform records an artifact as its bytes in one

@@ -1,4 +1,4 @@
-# Same values contract as web-service: Lembos renders it from a ComponentSpecVersion and does
+# Same values contract as service: Lembos renders it from a ComponentSpecVersion and does
 # not know which chart it is feeding. What differs is what the chart does with it — a worker takes
 # no ingress and its ports, if any, are for metrics rather than traffic.
 
@@ -30,7 +30,7 @@ resourceBindings: {}
 #    secretRef: northwind/sandbox/default/ordering/orders-db
 
 # One entry per component this one calls, keyed by a name: its host, or a whole URL. Rendered as UPSTREAM_<NAME>; a
-# host is called over HTTP on port 80, which every web-service answers callers on.
+# host is called over HTTP on port 80, which every service answers callers on.
 upstreams: {}
 #  orderApi: ordering-order-api-default.northwind-sandbox-default.svc.cluster.local
 
@@ -62,6 +62,19 @@ terminationGracePeriodSeconds: 60
 serviceAccount:
   create: true
   annotations: {}
+
+# Who the pods sign in as, where the slot gives them an identity. Empty, the chart makes a service account of its own
+# and the pods sign in as nothing, which is every slot on a cluster with no cloud identity behind it.
+identity:
+  # A service account the slot made, to run as in place of the chart's own: the namespace module's `workload`.
+  serviceAccount: ""
+  azure:
+    # The slot identity's client id. Set, the pods sign in through Azure workload identity, as that identity.
+    clientId: ""
+    tenantId: ""
+    # The vault the slot's resources keep their secrets in. Set with clientId, each binding's secret is copied from it
+    # into the Secret its URL is read from, by the AKS Key Vault provider signed in as the slot identity.
+    keyVault: ""
 
 podAnnotations: {}
 nodeSelector: {}

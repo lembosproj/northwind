@@ -41,7 +41,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{/* Shared by every chart: a binding names where the credential is, never what it is. */}}
 {{- /*
   What the workload depends on, as environment variables — where each thing is and where its credential lives,
-  never the credential. The same contract as web-service, so a component moving between the two keeps its
+  never the credential. The same contract as service, so a component moving between the two keeps its
   wiring: a binding's endpoint and secret path, its URL from a Kubernetes secret only where one was placed, and each
   upstream it calls.
 */}}
@@ -68,3 +68,21 @@ app.kubernetes.io/instance: {{ .Release.Name }}
   value: {{ ternary $address (printf "http://%s" $address) (contains "://" $address) | quote }}
 {{- end }}
 {{- end -}}
+
+{{- /* Whether the slot's Key Vault holds any of this component's binding secrets, for the Key Vault provider. */}}
+{{- define "worker.keyVaultSecrets" -}}
+{{- if and .Values.identity.azure.clientId .Values.identity.azure.keyVault -}}
+{{- range $handle, $binding := .Values.resourceBindings -}}
+{{- if $binding.secretRef -}}yes{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end }}
+
+{{- /* The service account the pods run as: the slot's, where it gives one, else the chart's own, else none. */}}
+{{- define "worker.serviceAccountName" -}}
+{{- if .Values.identity.serviceAccount -}}
+{{ .Values.identity.serviceAccount }}
+{{- else if .Values.serviceAccount.create -}}
+{{ include "worker.fullname" . }}
+{{- end -}}
+{{- end }}

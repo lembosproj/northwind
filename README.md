@@ -8,7 +8,7 @@ dependencies an app reports — is one change.
 | --- | --- | --- |
 | [`apps/`](apps/README.md) | the two archetype workloads and the API contracts | `ghcr.io/lembosproj/northwind/apps/{component}` |
 | [`charts/`](charts/README.md) | the component blueprints' charts | `oci://ghcr.io/lembosproj/northwind/charts/{chart}` |
-| [`modules/`](modules/README.md) | the resource and environment blueprints' modules | `ghcr.io/lembosproj/northwind/modules/{module}` |
+| [`modules/`](modules/README.md) | the resource and environment blueprints' modules, one folder per cloud | `ghcr.io/lembosproj/northwind/modules/{cloud}/{module}` |
 
 **The platform reads the registry, never this repository's history.** A seeded blueprint version names a package
 and a version and pins the manifest digest the push produced, so what the seed depends on is that each package
@@ -23,7 +23,7 @@ Every artifact is versioned by a tag that names it, because one repository holds
 | --- | --- |
 | `apps/v{version}` | every component's image, `{version}` and `sha-{commit}` |
 | `charts/{chart}/v{version}` | that chart at that version |
-| `modules/{module}/v{version}` | that module at that version |
+| `modules/{cloud}/{module}/v{version}` | that module at that version (`modules/state-probe/v{version}` for the one with no cloud) |
 
 Push tags **one at a time**. GitHub starts no workflow for a push of more than three tags, so a bulk
 `git push --tags` publishes nothing and says nothing.
@@ -63,23 +63,17 @@ Building one here would need an owner group above both, or a second account.
 
 ## The versions the seed expects
 
-| Package | Version | Seeded as |
-| --- | --- | --- |
-| `charts/web-service` | 2.2.0 | deprecated |
-| `charts/web-service` | 2.3.0 | withdrawn and **never published** — the seed expects it to be missing |
-| `charts/web-service` | 2.4.0 | deprecated |
-| `charts/web-service` | 2.5.0-rc.1 | staged |
-| `charts/web-service` | 2.6.0 | deprecated |
-| `charts/web-service` | 2.9.0 | current |
-| `charts/worker` | 1.9.0 | deprecated |
-| `charts/worker` | 1.10.0 | deprecated |
-| `charts/worker` | 1.11.0 | current |
-| `modules/postgres-cluster` | 3.5.0 | current |
-| `modules/redis-cache` | 2.1.0 | current |
-| `modules/aws-landing-zone` | 2.0.0 | current |
-| `modules/kubernetes-namespace` | 1.4.0 | the landing zone's slot level |
-| `apps/*` | 1.2.0 | each component's build |
+Every package starts again at 1.0.0 in this layout, and the seed pins each at that version:
 
-The deprecated versions and the release candidate are the charts before they took a component's dependencies.
-
-Packages must be **public**: the seed carries no credential, so the platform fetches anonymously.
+| Package | Version |
+| --- | --- |
+| `charts/service` | 1.0.0 |
+| `charts/worker` | 1.0.0 |
+| `modules/aws/landing-zone` | 1.0.0 |
+| `modules/aws/namespace` | 1.0.0 |
+| `modules/aws/postgres` | 1.0.0 |
+| `modules/aws/redis` | 1.0.0 |
+| `modules/azure/landing-zone` | 1.0.0 |
+| `modules/azure/namespace` | 1.0.0 |
+| `modules/azure/postgres` | 1.0.0 |
+| `modules/azure/redis` | 1.0.0 |

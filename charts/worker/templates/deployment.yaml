@@ -11,13 +11,26 @@ spec:
     matchLabels: {{- include "worker.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      labels: {{- include "worker.labels" . | nindent 8 }}
+      labels:
+        {{- include "worker.labels" . | nindent 8 }}
+        {{- if .Values.identity.azure.clientId }}
+        azure.workload.identity/use: "true"
+        {{- end }}
       {{- with .Values.podAnnotations }}
       annotations: {{- toYaml . | nindent 8 }}
       {{- end }}
     spec:
-      {{- if .Values.serviceAccount.create }}
-      serviceAccountName: {{ include "worker.fullname" . }}
+      {{- with include "worker.serviceAccountName" . }}
+      serviceAccountName: {{ . }}
+      {{- end }}
+      {{- if include "worker.keyVaultSecrets" . }}
+      volumes:
+        - name: key-vault
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ include "worker.fullname" . }}
       {{- end }}
       {{- /* A consumer killed mid-message redelivers it; the grace period is what avoids that. */}}
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
@@ -46,6 +59,12 @@ spec:
             {{- end }}
             {{- include "worker.dependencyEnv" . | trim | nindent 12 }}
           resources: {{- include "worker.resources" . | nindent 12 }}
+          {{- if include "worker.keyVaultSecrets" . }}
+          volumeMounts:
+            - name: key-vault
+              mountPath: /mnt/key-vault
+              readOnly: true
+          {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector: {{- toYaml . | nindent 8 }}
       {{- end }}

@@ -1,0 +1,28 @@
+{{- if .Values.ports }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "service.fullname" . }}
+  labels: {{- include "service.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector: {{- include "service.selectorLabels" . | nindent 4 }}
+  ports:
+    {{- range .Values.ports }}
+    - name: {{ .name }}
+      port: {{ .port }}
+      targetPort: {{ .name }}
+      protocol: TCP
+    {{- end }}
+    {{- /*
+      Every caller's port: the service answers on 80 too, at its first public port, so a workload calling it needs
+      only its host — the clusterEndpoint it publishes — and not which port it happens to listen on.
+    */}}
+    {{- $public := include "service.publicPortName" . }}
+    {{- if and $public (not (include "service.listensOn80" .)) }}
+    - name: callers
+      port: 80
+      targetPort: {{ $public }}
+      protocol: TCP
+    {{- end }}
+{{- end }}

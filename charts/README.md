@@ -1,17 +1,14 @@
 # Northwind Charts
 
-The Helm blueprints the Lembos sample organisation is built from. Two component charts match the
-`BlueprintProvisionerType.Helm` entries the Orchestrator seeds; the other four are an environment on a cluster that
-already exists — the deploy quickstart's k3s — where the AWS landing zone and its Terraform modules cannot run.
+The Helm blueprints the Lembos sample organisation's components are built from, one per
+`BlueprintProvisionerType.Helm` entry the Orchestrator seeds. The same two on every cloud: what differs between AWS and
+Azure is what the slot gives them (`identity` below), not the chart. Where they run is built by the Terraform modules in
+[../modules](../modules/README.md).
 
 | Chart | Blueprint | Version | Type |
 | --- | --- | --- | --- |
-| `web-service` | `platform/helm-web-service` | 2.6.0 | Component |
-| `worker` | `platform/helm-worker` | 1.10.0 | Component |
-| `cluster-landing-zone` | `platform/cluster-landing-zone` | 1.0.0 | Environment |
-| `cluster-slot` | the slot level of `platform/cluster-landing-zone` | 1.0.0 | Environment |
-| `postgres-database` | `platform/postgres-database` | 1.0.0 | Resource |
-| `redis-instance` | `platform/redis-instance` | 1.0.0 | Resource |
+| `service` | `platform/helm-service` | 1.0.0 | Component |
+| `worker` | `platform/helm-worker` | 1.0.0 | Component |
 
 The chart is named for what it deploys and the blueprint for how: `helm-` says which provisioner a blueprint uses,
 which is the catalog's question, and is noise in a registry that only holds charts.
@@ -61,33 +58,22 @@ the component runs. The charts render them the same way:
 | `upstreams.<name>` | `UPSTREAM_<NAME>` — a host is prefixed `http://` |
 
 A handle and a name are camelCase (`ordersDb`, `orderApi`) and become SCREAMING_SNAKE (`ORDERS_DB`, `ORDER_API`).
-A web service's Service answers callers on port 80, at its first public port, so a caller needs only the host.
+A service's Service answers callers on port 80, at its first public port, so a caller needs only the host.
 
-## An environment on an existing cluster
+## Who the pods sign in as
 
-The AWS landing zone builds a cluster; these stand on one. Terraform keeps its state in the destination's own
-account, which a cluster alone does not have, so every level here is a chart.
+The component charts take one more value, `identity`, which a blueprint answers from the slot it deploys into. Empty,
+the chart makes a service account of its own and the pods sign in as nothing, which is every slot with no cloud
+identity behind it: the local cluster and the emulators.
 
-- **`cluster-landing-zone`** is the environment level: the CloudNativePG and OpsTree Redis operators, once per
-  cluster, watching every namespace. Operators only — an operator's admission webhook has to be running before the
-  first object it validates is created, and within one release it is not.
-- **`cluster-slot`** is the slot level, installed into the namespace the platform names after the slot: the slot's
-  quota and default requests, a network policy at staging and prod, the `workload` service account, and one
-  PostgreSQL cluster, `postgres`.
-- **`postgres-database`** adds a database to that cluster, named after the resource, owned by `app` — whose
-  credentials CloudNativePG keeps in `postgres-app`.
-- **`redis-instance`** is a Redis per cache: Redis has no database a shared server could hand each resource.
+| Value | What it does |
+| --- | --- |
+| `identity.serviceAccount` | Runs as the slot's service account (`workload`, which each namespace module makes) |
+| `identity.azure.clientId`, `tenantId` | Signs the pods in through Azure workload identity, as the slot's identity |
+| `identity.azure.keyVault` | With `clientId`: a `SecretProviderClass` copies each binding's secret from the vault into the Secret `<HANDLE>_URL` is read from, through AKS's Key Vault provider |
 
-Their blueprint versions map the outputs a component binds to (ADR014), for example:
-
-| Blueprint | Output | Type | Mapping |
-| --- | --- | --- | --- |
-| `platform/postgres-database` | `endpoint` | Template | `postgres-rw.{{ release.namespace }}.svc:5432/{{ release.name }}` |
-| `platform/postgres-database` | `secret_ref` | Template | `postgres-app` |
-| `platform/redis-instance` | `endpoint` | Template | `{{ release.name }}.{{ release.namespace }}.svc:6379` |
-
-`cluster-landing-zone` depends on the two operator charts at the versions `Chart.lock` pins; the publish workflow
-fetches them before packaging.
+So on Azure a workload connects with the same variables as anywhere else, and its connection string never passes
+through the platform or the release's values.
 
 ## How Lembos resolves these
 
@@ -96,8 +82,8 @@ manifest digest the push produced:
 
 ```text
 location   oci://ghcr.io/lembosproj/northwind/charts
-package    web-service
-reference  2.6.0
+package    service
+reference  1.0.0
 digest     sha256:…
 ```
 
@@ -113,5 +99,5 @@ its tag says — and pushes it with Helm 3.16.2, the tool version the blueprints
 digest the seed pins.
 
 ```shell
-git tag charts/web-service/v2.6.0 && git push origin charts/web-service/v2.6.0
+git tag charts/service/v1.0.0 && git push origin charts/service/v1.0.0
 ```
