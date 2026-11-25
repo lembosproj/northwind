@@ -32,12 +32,6 @@ data "azurerm_key_vault" "environment" {
   resource_group_name = local.environment_slug
 }
 
-# The one address the environment's cluster reaches out from, which the firewall admits.
-data "azurerm_public_ip" "outbound" {
-  name                = "${local.environment_slug}-outbound"
-  resource_group_name = local.environment_slug
-}
-
 # The slot's identity, where the slot has one: none on the local emulator, which has no workload identity. Listed rather
 # than read directly, because reading a missing identity fails the run.
 data "azurerm_resources" "slot_identity" {

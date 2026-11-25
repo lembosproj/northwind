@@ -1,15 +1,15 @@
 output "resource_id" {
   description = "The provider identifier, recorded as a provisioning output."
-  value       = azurerm_redis_cache.this.name
+  value       = azurerm_managed_redis.this.name
 }
 
 output "endpoint" {
   description = "Where the workload connects."
-  value       = azurerm_redis_cache.this.hostname
+  value       = azurerm_managed_redis.this.hostname
 }
 
 output "port" {
-  value = azurerm_redis_cache.this.ssl_port
+  value = local.port
 }
 
 output "secret_ref" {

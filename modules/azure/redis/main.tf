@@ -1,43 +1,45 @@
-# A managed Redis cache: the Azure twin of ../../aws/redis, kept to the minimum. Azure Cache for Redis, the offer the
-# local emulator runs; reached over TLS through a firewall that admits the environment's cluster alone.
+# A managed Redis cache: the Azure twin of ../../aws/redis, kept to the minimum. Azure Managed Redis, because Azure
+# no longer creates the older Azure Cache for Redis. Reached over TLS with its access key: Managed Redis has no IP
+# firewall rule, and a private endpoint would need a subnet the landing zone does not make.
 
 locals {
   # What a size class means for Redis on Azure. The platform team owns this table.
   sizing = {
-    small  = { sku = "Basic", family = "C", capacity = 0 }
-    medium = { sku = "Standard", family = "C", capacity = 1 }
-    large  = { sku = "Premium", family = "P", capacity = 1 }
+    small  = { sku = "Balanced_B0", high_availability = false }
+    medium = { sku = "Balanced_B1", high_availability = true }
+    large  = { sku = "Balanced_B3", high_availability = true }
   }
   size = local.sizing[var.size_class]
+
+  # Managed Redis listens on one port, over TLS.
+  port = 10000
 }
 
-resource "azurerm_redis_cache" "this" {
-  name                 = local.identifier
-  location             = data.azurerm_resource_group.environment.location
-  resource_group_name  = data.azurerm_resource_group.environment.name
-  sku_name             = local.size.sku
-  family               = local.size.family
-  capacity             = local.size.capacity
-  non_ssl_port_enabled = false
-  minimum_tls_version  = "1.2"
-  tags                 = local.tags
-}
+resource "azurerm_managed_redis" "this" {
+  name                      = local.identifier
+  location                  = data.azurerm_resource_group.environment.location
+  resource_group_name       = data.azurerm_resource_group.environment.name
+  sku_name                  = local.size.sku
+  high_availability_enabled = local.size.high_availability
+  public_network_access     = "Enabled"
+  tags                      = local.tags
 
-resource "azurerm_redis_firewall_rule" "cluster" {
-  name                = "cluster"
-  redis_cache_name    = azurerm_redis_cache.this.name
-  resource_group_name = data.azurerm_resource_group.environment.name
-  start_ip            = data.azurerm_public_ip.outbound.ip_address
-  end_ip              = data.azurerm_public_ip.outbound.ip_address
+  default_database {
+    # One endpoint for the whole database, so a client that speaks no cluster protocol connects as to one server.
+    clustering_policy                  = "EnterpriseCluster"
+    eviction_policy                    = "VolatileLRU"
+    client_protocol                    = "Encrypted"
+    access_keys_authentication_enabled = true
+  }
 }
 
 resource "azurerm_key_vault_secret" "connection" {
   name         = local.secret_name
   key_vault_id = data.azurerm_key_vault.environment.id
   value = format("rediss://:%s@%s:%d",
-    azurerm_redis_cache.this.primary_access_key,
-    azurerm_redis_cache.this.hostname,
-  azurerm_redis_cache.this.ssl_port)
+    azurerm_managed_redis.this.default_database[0].primary_access_key,
+    azurerm_managed_redis.this.hostname,
+  local.port)
   tags = local.tags
 }
 
