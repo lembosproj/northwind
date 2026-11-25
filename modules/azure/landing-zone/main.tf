@@ -19,9 +19,11 @@ locals {
   # gives the same vault, which is how the resource modules find it.
   key_vault_name = "kv-${substr(sha1(var.name), 0, 16)}"
 
+  # Two nodes below staging as well: one 2-vCPU node holds little beyond AKS's own pods, its app routing alone asking
+  # for a whole vCPU. The AWS landing zone gives dev and test two nodes too.
   sizing = {
-    dev     = { vm_size = "Standard_B2s", node_count = 1 }
-    test    = { vm_size = "Standard_B2s", node_count = 1 }
+    dev     = { vm_size = "Standard_B2s", node_count = 2 }
+    test    = { vm_size = "Standard_B2s", node_count = 2 }
     staging = { vm_size = "Standard_D2s_v5", node_count = 2 }
     prod    = { vm_size = "Standard_D4s_v5", node_count = 3 }
   }

@@ -9,8 +9,8 @@ same inputs and give the same outputs, so a spec reads a resource the same way w
 | `aws/namespace` | the slot level of `aws/landing-zone` | 1.0.0 | Environment |
 | `aws/postgres` | `aws/postgres` | 1.0.0 | Resource |
 | `aws/redis` | `aws/redis` | 1.0.0 | Resource |
-| `azure/landing-zone` | `azure/landing-zone` | 1.0.4 | Environment |
-| `azure/namespace` | the slot level of `azure/landing-zone` | 1.0.1 | Environment |
+| `azure/landing-zone` | `azure/landing-zone` | 1.0.5 | Environment |
+| `azure/namespace` | the slot level of `azure/landing-zone` | 1.0.2 | Environment |
 | `azure/postgres` | `azure/postgres` | 1.0.1 | Resource |
 | `azure/redis` | `azure/redis` | 1.1.1 | Resource |
 

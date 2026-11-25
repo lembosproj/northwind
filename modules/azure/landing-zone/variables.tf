@@ -29,7 +29,7 @@ variable "node_vm_size" {
 
 variable "node_count" {
   description = <<-EOT
-    How many nodes, instead of the stage's (dev and test 1, staging 2, prod 3). Null keeps the stage's. One 2-vCPU
+    How many nodes, instead of the stage's (dev, test and staging 2, prod 3). Null keeps the stage's. One 2-vCPU
     node cannot hold much more than AKS's own pods: its app routing alone asks for a whole vCPU.
   EOT
   type        = number

@@ -147,8 +147,13 @@ resource "azurerm_user_assigned_identity" "workload" {
   name                = local.identity_name
   location            = data.azurerm_resource_group.this.location
   resource_group_name = var.resource_group
-  # Azure refuses a / in a tag's name; the Kubernetes labels above keep lembos.dev/slot.
-  tags = merge(var.tags, { "lembos-slot" = var.name })
+  # Azure refuses a / in a tag's name; the Kubernetes labels above keep lembos.dev/slot. The slot is its own name, as
+  # the resource modules tag theirs, and the namespace is named apart.
+  tags = merge(var.tags, {
+    "lembos-slot"      = local.slot
+    "lembos-namespace" = var.name
+    "managed-by"       = "lembos"
+  })
 }
 
 resource "azurerm_federated_identity_credential" "workload" {
